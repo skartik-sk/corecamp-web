@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "campfire",
+      "name": "CoreCamp",
       "dependencies": {
         "@apollo/client": "^3.13.9",
         "@campnetwork/origin": "^0.0.17",

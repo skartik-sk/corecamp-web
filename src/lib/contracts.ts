@@ -46,7 +46,7 @@ export interface LotteryParams {
 }
 
 // Utility functions for contract interactions
-export class CampfireContracts {
+export class CoreCampContracts {
   private origin: any;
 
   constructor(origin: any) {
@@ -322,8 +322,8 @@ export class CampfireContracts {
 }
 
 // Hook for using contracts
-export function useCampfireContracts(origin: any) {
-  return new CampfireContracts(origin);
+export function useCoreCampContracts(origin: any) {
+  return new CoreCampContracts(origin);
 }
 
 // Price formatting utilities
@@ -351,4 +351,4 @@ export const formatTimeRemaining = (endTime: Date | number): string => {
   return `${minutes}m`;
 };
 
-export default CampfireContracts;
+export default CoreCampContracts;

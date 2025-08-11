@@ -227,7 +227,7 @@ export default function IPDetail() {
                   <div>
                     <p className="text-sm text-cool-1 mb-1">Created by</p>
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gradient-to-r from-camp-orange to-warm-1 rounded-full flex items-center justify-center mr-3">
+                      <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center mr-3">
                         <User className="w-4 h-4 text-white" />
                       </div>
                       <span className="font-mono text-camp-dark">

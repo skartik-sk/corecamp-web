@@ -556,7 +556,7 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
         ) : !authenticated ? (
           <div className="text-center">
             <p className="text-cool-1 text-sm mb-3">Connect wallet to participate</p>
-            <button className="w-full py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium">
+            <button className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium">
               Connect Wallet
             </button>
           </div>

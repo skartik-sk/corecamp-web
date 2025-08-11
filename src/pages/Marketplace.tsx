@@ -393,7 +393,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
                 </div>
                 <Link
                   to={`/ip/${ip.tokenId || ip.id}`}
-                  className="px-6 py-2 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+                  className="px-6 py-2 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all"
                 >
                   View Details
                 </Link>
@@ -464,7 +464,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
 
         <Link
           to={`/ip/${ip.tokenId || ip.id}`}
-          className="block w-full text-center px-6 py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+          className="block w-full text-center px-6 py-3 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all"
         >
           View Details
         </Link>

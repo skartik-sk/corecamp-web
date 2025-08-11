@@ -194,7 +194,7 @@ export default function Auctions() {
           className="mb-12"
         >
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-camp-orange to-warm-1 rounded-2xl flex items-center justify-center mr-6 shadow-xl">
+            <div className="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mr-6 shadow-xl">
               <Gavel className="w-8 h-8 text-white" />
             </div>
             <div>
@@ -253,7 +253,7 @@ export default function Auctions() {
                       className="w-full h-48 object-cover"
                     />
                     <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-full text-xs font-bold">
+                      <span className="px-3 py-1 gradient-bg text-white rounded-full text-xs font-bold">
                         FEATURED
                       </span>
                     </div>
@@ -304,7 +304,7 @@ export default function Auctions() {
                           whileTap={{ scale: 0.95 }}
                           onClick={() => placeBid(auction.id)}
                           disabled={!bidAmounts[auction.id] || parseFloat(bidAmounts[auction.id]) < auction.minimumBid}
-                          className="px-6 py-2 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-6 py-2 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Place Bid
                         </motion.button>
@@ -394,7 +394,7 @@ export default function Auctions() {
                 onClick={() => setFilter(key as any)}
                 className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 ${
                   filter === key
-                    ? 'bg-gradient-to-r from-camp-orange to-warm-1 text-white shadow-lg'
+                    ? 'gradient-bg text-white shadow-lg'
                     : 'text-camp-dark dark:text-white hover:bg-cool-3/20 dark:hover:bg-cool-1/20'
                 }`}
               >
@@ -440,7 +440,7 @@ export default function Auctions() {
                   </div>
                   {auction.featured && (
                     <div className="absolute top-3 left-3">
-                      <span className="px-2 py-1 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-lg text-xs font-bold">
+                      <span className="px-2 py-1 gradient-bg text-white rounded-lg text-xs font-bold">
                         FEATURED
                       </span>
                     </div>
@@ -495,7 +495,7 @@ export default function Auctions() {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => placeBid(auction.id)}
                         disabled={!bidAmounts[auction.id] || parseFloat(bidAmounts[auction.id]) < auction.minimumBid}
-                        className="w-full py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                       >
                         <Gavel className="w-4 h-4 mr-2" />
                         Place Bid
@@ -504,7 +504,7 @@ export default function Auctions() {
                   ) : (
                     <div className="text-center">
                       <p className="text-cool-1 dark:text-cool-2 text-sm mb-3">Connect wallet to bid</p>
-                      <button className="w-full py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium">
+                      <button className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium">
                         Connect Wallet
                       </button>
                     </div>
