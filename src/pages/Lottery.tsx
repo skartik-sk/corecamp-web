@@ -82,66 +82,61 @@ const mockLotteries: LotteryRound[] = [
 ]
 
 export default function Lottery() {
-  const { origin } = useAuth()
-  const { authenticated } = useAuthState()
-  const [lotteries] = useState<LotteryRound[]>(mockLotteries)
-  const [filter, setFilter] = useState<'all' | 'active' | 'ended' | 'upcoming'>('all')
-  const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({})
-  const [countdown, setCountdown] = useState<Record<string, string>>({})
+  const { origin } = useAuth();
+  const { authenticated } = useAuthState();
+  const [lotteries] = useState<LotteryRound[]>(mockLotteries);
+  const [filter, setFilter] = useState<'all' | 'active' | 'ended' | 'upcoming'>('all');
+  const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
+  const [countdown, setCountdown] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const updateCountdowns = () => {
-      const newCountdowns: Record<string, string> = {}
+      const newCountdowns: Record<string, string> = {};
       lotteries.forEach(lottery => {
         if (lottery.status === 'active') {
-          const timeLeft = lottery.endTime.getTime() - Date.now()
+          const timeLeft = lottery.endTime.getTime() - Date.now();
           if (timeLeft > 0) {
-            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24))
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
-            
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
             if (days > 0) {
-              newCountdowns[lottery.id] = `${days}d ${hours}h ${minutes}m`
+              newCountdowns[lottery.id] = `${days}d ${hours}h ${minutes}m`;
             } else if (hours > 0) {
-              newCountdowns[lottery.id] = `${hours}h ${minutes}m ${seconds}s`
+              newCountdowns[lottery.id] = `${hours}h ${minutes}m ${seconds}s`;
             } else {
-              newCountdowns[lottery.id] = `${minutes}m ${seconds}s`
+              newCountdowns[lottery.id] = `${minutes}m ${seconds}s`;
             }
           } else {
-            newCountdowns[lottery.id] = 'Draw time!'
+            newCountdowns[lottery.id] = 'Draw time!';
           }
         }
-      })
-      setCountdown(newCountdowns)
-    }
-
-    updateCountdowns()
-    const interval = setInterval(updateCountdowns, 1000)
-    return () => clearInterval(interval)
-  }, [lotteries])
+      });
+      setCountdown(newCountdowns);
+    };
+    updateCountdowns();
+    const interval = setInterval(updateCountdowns, 1000);
+    return () => clearInterval(interval);
+  }, [lotteries]);
 
   const filteredLotteries = lotteries.filter(lottery => {
-    if (filter === 'all') return true
-    return lottery.status === filter
-  })
-
-  const featuredLotteries = lotteries.filter(l => l.featured && l.status === 'active')
+    if (filter === 'all') return true;
+    return lottery.status === filter;
+  });
+  const featuredLotteries = lotteries.filter(l => l.featured && l.status === 'active');
 
   const buyTickets = async (lotteryId: string, ticketCount: number) => {
-    if (!origin || !authenticated || ticketCount <= 0) return
-    
+    if (!origin || !authenticated || ticketCount <= 0) return;
     try {
-      console.log(`Buying ${ticketCount} tickets for lottery ${lotteryId}`)
-      // This would interact with the lottery smart contract
-      // await origin.buyLotteryTickets(BigInt(lotteryId), ticketCount)
+      // Integrate with smart contract here
+      console.log(`Buying ${ticketCount} tickets for lottery ${lotteryId}`);
     } catch (error) {
-      console.error('Error buying tickets:', error)
+      console.error('Error buying tickets:', error);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-camp-light dark:bg-camp-dark py-12">
+  <div className="min-h-screen bg-gradient-to-br from-camp-light via-white to-camp-orange/10 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div 
@@ -150,31 +145,30 @@ export default function Lottery() {
           className="mb-12"
         >
           <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-3xl flex items-center justify-center mr-6 shadow-xl">
+            <div className="w-16 h-16 bg-gradient-to-br from-camp-orange via-camp-light to-cool-2 rounded-3xl flex items-center justify-center mr-6 shadow-xl animate-pulse-glow">
               <Dice6 className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-5xl font-bold text-camp-dark dark:text-white mb-2 flex items-center">
+              <h1 className="text-5xl font-bold text-camp-dark mb-2 flex items-center">
                 IP Lottery
-                <Sparkles className="w-8 h-8 ml-3 text-yellow-500" />
+                <Sparkles className="w-8 h-8 ml-3 text-camp-orange" />
               </h1>
-              <p className="text-xl text-cool-1 dark:text-gray-300">
+              <p className="text-xl text-cool-1">
                 Win exclusive intellectual property assets through decentralized raffles.
               </p>
             </div>
           </div>
-
           {/* Quick Stats */}
           <div className="flex items-center gap-8 text-sm">
-            <div className="flex items-center text-purple-600 dark:text-purple-400">
+            <div className="flex items-center text-camp-orange">
               <Trophy className="w-4 h-4 mr-1" />
               <span>{lotteries.filter(l => l.status === 'active').length} Active Draws</span>
             </div>
-            <div className="flex items-center text-pink-600 dark:text-pink-400">
+            <div className="flex items-center text-cool-1">
               <Users className="w-4 h-4 mr-1" />
               <span>{lotteries.reduce((sum, l) => sum + l.participants, 0)} Total Players</span>
             </div>
-            <div className="flex items-center text-orange-600 dark:text-orange-400">
+            <div className="flex items-center text-camp-orange">
               <DollarSign className="w-4 h-4 mr-1" />
               <span>{lotteries.reduce((sum, l) => sum + parseFloat(l.prizePool), 0).toFixed(1)} ETH in Prizes</span>
             </div>
@@ -188,8 +182,8 @@ export default function Lottery() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-12"
           >
-            <h2 className="text-2xl font-bold text-camp-dark dark:text-white mb-6 flex items-center">
-              <Crown className="w-6 h-6 mr-2 text-yellow-500" />
+            <h2 className="text-2xl font-bold text-camp-dark mb-6 flex items-center">
+              <Crown className="w-6 h-6 mr-2 text-camp-orange" />
               Featured Draws
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -199,55 +193,55 @@ export default function Lottery() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-900/20 dark:to-pink-900/20 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl border-2 border-purple-200/50 dark:border-purple-700/50 p-2"
+                  className="bg-gradient-to-br from-camp-light/60 to-camp-orange/10 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl border-2 border-camp-orange/20 p-2"
                 >
-                  <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl p-8">
+                  <div className="bg-white/90 rounded-2xl p-8">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center">
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mr-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-camp-orange to-cool-2 rounded-2xl flex items-center justify-center mr-4">
                           <Star className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-camp-dark dark:text-white">{lottery.name}</h3>
-                          <p className="text-purple-600 dark:text-purple-400 font-medium">Featured Draw</p>
+                          <h3 className="text-2xl font-bold text-camp-dark">{lottery.name}</h3>
+                          <p className="text-camp-orange font-medium">Featured Draw</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-3xl font-bold text-camp-orange">{lottery.prizePool}</p>
-                        <p className="text-sm text-cool-1 dark:text-gray-400">Prize Pool</p>
+                        <p className="text-sm text-cool-1">Prize Pool</p>
                       </div>
                     </div>
 
-                    <p className="text-cool-1 dark:text-gray-400 mb-6 text-lg">{lottery.description}</p>
+                    <p className="text-cool-1 mb-6 text-lg">{lottery.description}</p>
 
                     <div className="grid grid-cols-3 gap-6 mb-6">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-camp-dark dark:text-white">
+                        <p className="text-2xl font-bold text-camp-dark">
                           {countdown[lottery.id] || 'Calculating...'}
                         </p>
-                        <p className="text-xs text-cool-1 dark:text-gray-400">Time Remaining</p>
+                        <p className="text-xs text-cool-1">Time Remaining</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-camp-dark dark:text-white">{lottery.ticketsSold}</p>
-                        <p className="text-xs text-cool-1 dark:text-gray-400">Tickets Sold</p>
+                        <p className="text-2xl font-bold text-camp-dark">{lottery.ticketsSold}</p>
+                        <p className="text-xs text-cool-1">Tickets Sold</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-camp-dark dark:text-white">{lottery.participants}</p>
-                        <p className="text-xs text-cool-1 dark:text-gray-400">Players</p>
+                        <p className="text-2xl font-bold text-camp-dark">{lottery.participants}</p>
+                        <p className="text-xs text-cool-1">Players</p>
                       </div>
                     </div>
 
                     {/* Progress Bar */}
                     <div className="mb-6">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-cool-1 dark:text-gray-400">Progress</span>
-                        <span className="font-medium text-camp-dark dark:text-white">
+                        <span className="text-cool-1">Progress</span>
+                        <span className="font-medium text-camp-dark">
                           {Math.round((lottery.ticketsSold / lottery.totalTickets) * 100)}%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                      <div className="w-full bg-cool-1/20 rounded-full h-3">
                         <div 
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-300"
+                          className="bg-gradient-to-r from-camp-orange to-cool-2 h-3 rounded-full transition-all duration-300"
                           style={{ width: `${(lottery.ticketsSold / lottery.totalTickets) * 100}%` }}
                         />
                       </div>
@@ -264,10 +258,10 @@ export default function Lottery() {
                             ...prev, 
                             [lottery.id]: Math.max(1, Math.min(10, parseInt(e.target.value) || 1)) 
                           }))}
-                          className="w-20 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-20 px-3 py-2 border border-camp-orange/30 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent bg-white text-gray-900"
                         />
                         <div className="flex-1">
-                          <p className="text-xs text-cool-1 dark:text-gray-400 mb-1">
+                          <p className="text-xs text-cool-1 mb-1">
                             {ticketCounts[lottery.id] || 1} ticket(s) × {lottery.ticketPrice} = {
                               ((ticketCounts[lottery.id] || 1) * parseFloat(lottery.ticketPrice)).toFixed(3)
                             } ETH
@@ -276,7 +270,7 @@ export default function Lottery() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => buyTickets(lottery.id, ticketCounts[lottery.id] || 1)}
-                            className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold"
+                            className="w-full py-3 bg-gradient-to-r from-camp-orange to-cool-2 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold"
                           >
                             Buy Tickets
                           </motion.button>
@@ -301,25 +295,25 @@ export default function Lottery() {
               label: 'Active Draws',
               value: lotteries.filter(l => l.status === 'active').length,
               icon: Dice6,
-              color: 'from-purple-400 to-purple-600'
+              color: 'from-camp-orange to-camp-light'
             },
             {
               label: 'Total Participants',
               value: lotteries.reduce((sum, l) => sum + l.participants, 0),
               icon: Users,
-              color: 'from-pink-400 to-pink-600'
+              color: 'from-cool-1 to-cool-2'
             },
             {
               label: 'Prize Pool',
               value: `${lotteries.reduce((sum, l) => sum + parseFloat(l.prizePool), 0).toFixed(1)} ETH`,
               icon: Gift,
-              color: 'from-orange-400 to-orange-600'
+              color: 'from-camp-orange to-warm-2'
             },
             {
               label: 'Winners This Week',
               value: lotteries.filter(l => l.status === 'ended').length,
               icon: Trophy,
-              color: 'from-yellow-400 to-yellow-600'
+              color: 'from-cool-2 to-cool-3'
             }
           ].map((stat, index) => (
             <motion.div
@@ -327,12 +321,12 @@ export default function Lottery() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20 dark:border-gray-700/20"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-cool-1 dark:text-gray-400">{stat.label}</p>
-                  <p className="text-3xl font-bold text-camp-dark dark:text-white">
+                  <p className="text-sm font-medium text-cool-1">{stat.label}</p>
+                  <p className="text-3xl font-bold text-camp-dark">
                     {stat.value}
                   </p>
                 </div>
@@ -348,7 +342,7 @@ export default function Lottery() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20 dark:border-gray-700/20 mb-8"
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20 mb-8"
         >
           <div className="flex flex-wrap gap-4">
             {[
@@ -364,15 +358,15 @@ export default function Lottery() {
                 onClick={() => setFilter(key as any)}
                 className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 ${
                   filter === key
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-gradient-to-r from-camp-orange to-cool-2 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <span className="font-medium">{label}</span>
                 <span className={`text-xs px-3 py-1 rounded-full font-bold ${
                   filter === key
                     ? 'bg-white/20 text-white'
-                    : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                    : 'bg-gray-200 text-gray-600'
                 }`}>
                   {count}
                 </span>
@@ -445,7 +439,7 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
   return (
     <motion.div 
       whileHover={{ y: -5 }}
-      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-white/20 dark:border-gray-700/20 hover:shadow-2xl transition-all duration-300"
+  className="bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300"
     >
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
@@ -468,13 +462,13 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
         </p>
 
         {/* Prize Pool */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-4 mb-6">
+        <div className="bg-gradient-to-r from-camp-light/60 to-camp-orange/10 rounded-2xl p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-cool-1 dark:text-gray-400 mb-1">Prize Pool</p>
+              <p className="text-xs text-cool-1 mb-1">Prize Pool</p>
               <p className="text-2xl font-bold text-camp-orange">{lottery.prizePool}</p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-camp-orange to-cool-2 rounded-2xl flex items-center justify-center">
               <Gift className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -497,16 +491,16 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
         {/* Progress */}
         <div className="mb-6">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-cool-1 dark:text-gray-400">
+            <span className="text-cool-1">
               {lottery.ticketsSold} / {lottery.totalTickets} tickets
             </span>
-            <span className="font-medium text-camp-dark dark:text-white">
+            <span className="font-medium text-camp-dark">
               {Math.round(progressPercentage)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-cool-1/20 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-camp-orange to-cool-2 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -514,12 +508,12 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
 
         {/* Winner Display */}
         {lottery.status === 'ended' && lottery.winner && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
             <div className="flex items-center">
-              <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+              <Trophy className="w-5 h-5 text-yellow-600 mr-2" />
               <div>
-                <p className="text-xs text-yellow-700 dark:text-yellow-400">Winner</p>
-                <p className="font-mono text-sm font-bold text-yellow-800 dark:text-yellow-200">
+                <p className="text-xs text-yellow-700">Winner</p>
+                <p className="font-mono text-sm font-bold text-yellow-800">
                   {lottery.winner.slice(0, 6)}...{lottery.winner.slice(-4)}
                 </p>
               </div>
@@ -537,10 +531,10 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
                 max="10"
                 value={ticketCount}
                 onChange={(e) => setTicketCount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-                className="w-16 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center"
+                className="w-16 px-3 py-2 border border-camp-orange/30 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent bg-white text-gray-900 text-center"
               />
               <div className="flex-1">
-                <p className="text-xs text-cool-1 dark:text-gray-400">
+                <p className="text-xs text-cool-1">
                   {ticketCount} × {lottery.ticketPrice} = {(ticketCount * parseFloat(lottery.ticketPrice)).toFixed(3)} ETH
                 </p>
               </div>
@@ -549,7 +543,7 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={onBuyTickets}
-              className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold flex items-center justify-center"
+              className="w-full py-3 bg-gradient-to-r from-camp-orange to-cool-2 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-bold flex items-center justify-center"
             >
               <Dice6 className="w-4 h-4 mr-2" />
               Buy Tickets
@@ -561,7 +555,7 @@ function LotteryCard({ lottery, authenticated, ticketCount, setTicketCount, onBu
           </div>
         ) : !authenticated ? (
           <div className="text-center">
-            <p className="text-cool-1 dark:text-gray-400 text-sm mb-3">Connect wallet to participate</p>
+            <p className="text-cool-1 text-sm mb-3">Connect wallet to participate</p>
             <button className="w-full py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium">
               Connect Wallet
             </button>
