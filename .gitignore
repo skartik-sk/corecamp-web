@@ -10,7 +10,6 @@ lerna-debug.log*
 example2/
 mobile/ 
 
-contracts/
 node_modules
 dist
 dist-ssr
@@ -26,3 +25,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# foundary 
+contracts/out
+contracts/cache
+contracts/lib

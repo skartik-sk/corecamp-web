@@ -141,7 +141,7 @@ export default function Home() {
               Latest Activity
             </h2>
             <p className="text-lg text-cool-1">
-              See what's happening in the Campfire community
+              See what's happening in the CoreCamp community
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

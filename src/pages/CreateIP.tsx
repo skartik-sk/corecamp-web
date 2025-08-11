@@ -230,7 +230,7 @@ export default function CreateIP() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     htmlFor="file-upload"
-                    className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer font-medium"
+                    className="inline-flex items-center px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 cursor-pointer font-medium"
                   >
                     <Upload className="w-5 h-5 mr-2" />
                     Choose File
@@ -249,7 +249,7 @@ export default function CreateIP() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setStep('metadata')}
-                  className="px-8 py-4 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center"
+                  className="px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center"
                 >
                   Next: Add Details
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -391,7 +391,7 @@ export default function CreateIP() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={addTag}
-                    className="px-6 py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                    className="px-6 py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
                   >
                     Add
                   </motion.button>
@@ -448,7 +448,7 @@ export default function CreateIP() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setStep('license')}
                 disabled={!metadata.title || !metadata.description || !metadata.category}
-                className="px-8 py-4 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-medium flex items-center"
+                className="px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-medium flex items-center"
               >
                 Next: Set License
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -568,7 +568,7 @@ export default function CreateIP() {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleMint}
                 disabled={isLoading}
-                className="px-8 py-4 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-medium flex items-center"
+                className="px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-medium flex items-center"
               >
                 {isLoading ? (
                   <>
@@ -666,7 +666,7 @@ export default function CreateIP() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.href = '/my-ips'}
-                className="px-8 py-4 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                className="px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
               >
                 View My IPs
               </motion.button>
@@ -695,7 +695,7 @@ export default function CreateIP() {
                   whileHover={{ scale: 1.1 }}
                   className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                     step === stepName
-                      ? 'bg-gradient-to-r from-camp-orange to-warm-1 text-white shadow-lg'
+                      ? 'gradient-bg text-white shadow-lg'
                       : ['upload', 'metadata', 'license', 'mint'].indexOf(step) > index
                       ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
                       : 'bg-gray-100 text-gray-500'

@@ -69,7 +69,7 @@ export default function Header() {
                   <img 
                     src="/logo.png" 
                     alt="CoreCamp Logo" 
-                    className="w-8 h-8 rounded-xl"
+                    className="w-10 h-10 rounded-xl"
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement;
                       target.style.display = 'none';
@@ -109,7 +109,7 @@ export default function Header() {
                   to={item.href}
                   className={`relative px-4 py-2 rounded-2xl font-medium transition-all duration-300 ${
                     location.pathname === item.href
-                      ? 'text-white bg-gradient-to-r from-camp-orange to-warm-1 shadow-lg'
+                      ? 'text-white gradient-bg shadow-lg'
                       : 'text-camp-dark hover:text-camp-orange hover:bg-white/20'
                   }`}
                 >
@@ -124,7 +124,7 @@ export default function Header() {
                   {location.pathname === item.href && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 bg-gradient-to-r from-camp-orange to-warm-1 rounded-2xl -z-10"
+                      className="absolute inset-0 gradient-bg rounded-2xl -z-10"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}

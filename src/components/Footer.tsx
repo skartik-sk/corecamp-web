@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-camp-orange to-warm-1 shadow-lg flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl gradient-bg shadow-lg flex items-center justify-center">
               <img 
                 src="/logo.png" 
                 alt="CoreCamp Logo" 

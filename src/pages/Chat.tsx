@@ -228,7 +228,7 @@ export default function Chat() {
           className="mb-8"
         >
           <div className="flex items-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-camp-orange to-warm-1 rounded-2xl flex items-center justify-center mr-4">
+            <div className="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center mr-4">
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -324,7 +324,7 @@ export default function Chat() {
                               <motion.span 
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="bg-gradient-to-r from-camp-orange to-warm-1 text-white text-xs rounded-full px-3 py-1 font-bold shadow-lg"
+                                className="gradient-bg text-white text-xs rounded-full px-3 py-1 font-bold shadow-lg"
                               >
                                 {chat.unreadCount}
                               </motion.span>
@@ -409,7 +409,7 @@ export default function Chat() {
                             <div
                               className={`max-w-md px-6 py-4 rounded-2xl shadow-lg ${
                                 message.senderId === 'user'
-                                  ? 'bg-gradient-to-r from-camp-orange to-warm-1 text-white'
+                                  ? 'gradient-bg text-white'
                                   : 'bg-white border border-gray-200 text-camp-dark'
                               }`}
                             >
@@ -486,7 +486,7 @@ export default function Chat() {
                           whileTap={{ scale: 0.95 }}
                           onClick={sendMessage}
                           disabled={!newMessage.trim()}
-                          className="p-4 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed"
+                          className="p-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed"
                         >
                           <Send className="w-6 h-6" />
                         </motion.button>

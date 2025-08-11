@@ -112,8 +112,16 @@ export default function HomeNew() {
               variants={itemVariants}
             >
               <div className="relative">
-                <div className="w-24 h-24 gradient-bg rounded-3xl flex items-center justify-center animate-pulse-glow">
-                  <Sparkles className="w-12 h-12 text-white" />
+                <div className="w-24 h-22 gradient-bg rounded-3xl flex items-center justify-center animate-pulse-glow">
+                  <img 
+                    src="/logo.png" 
+                    alt="CoreCamp Logo" 
+                    className="w-20 h-18 rounded-2xl"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
                 </div>
                 <div className="absolute -top-2 -right-2 w-8 h-8 bg-warm-2 rounded-full flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
@@ -125,8 +133,8 @@ export default function HomeNew() {
               className="text-5xl sm:text-7xl font-bold text-camp-dark mb-8 leading-tight"
               variants={itemVariants}
             >
-              <span className="block">Campfire</span>
-              <span className="block bg-gradient-to-r from-camp-orange via-warm-2 to-warm-1 bg-clip-text text-transparent">
+              <span className="block ">CoreCamp</span>
+              <span className="block text-gradient">
                 IP Marketplace
               </span>
             </motion.h1>
@@ -269,7 +277,7 @@ export default function HomeNew() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="text-center mb-20" variants={itemVariants}>
             <h2 className="text-4xl sm:text-5xl font-bold text-camp-dark mb-6">
-              How Campfire Works
+              How CoreCamp Works
             </h2>
             <p className="text-xl text-cool-1 max-w-3xl mx-auto">
               Simple steps to start your IP journey on the blockchain

@@ -67,4 +67,4 @@ export default tseslint.config([
   },
 ])
 ```
-# corecamp-web
+# CoreCamp-web
