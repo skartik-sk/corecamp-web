@@ -17,7 +17,7 @@ function App() {
   const { jwt } = useAuth()
 
   return (
-    <div className="min-h-screen bg-mesh-gradient dark:bg-gradient-to-br dark:from-camp-dark dark:via-gray-900 dark:to-black">
+    <div className="min-h-screen bg-gradient-to-br from-camp-light via-white to-cool-3/30">
       <Routes>
         <Route path="/auth/*" element={<AuthCallback />} />
         <Route path="/" element={<Layout />}>

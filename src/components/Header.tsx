@@ -11,66 +11,86 @@ import {
   MessageCircle, 
   User, 
   Dice6, 
-  Sun,
-  Moon,
   Sparkles,
-  Zap
+  Zap,
+  Wallet,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Marketplace', href: '/marketplace', icon: Store },
   { name: 'Auctions', href: '/auctions', icon: Dice6 },
   { name: 'Lottery', href: '/lottery', icon: Zap },
-  { name: 'Create IP', href: '/create', icon: Plus },
-  { name: 'Chat', href: '/chat', icon: MessageCircle },
-  { name: 'My IPs', href: '/my-ips', icon: User },
+  { name: 'Create IP', href: '/create', icon: Plus, authRequired: true },
+  { name: 'Chat', href: '/chat', icon: MessageCircle, authRequired: true },
+  { name: 'My IPs', href: '/my-ips', icon: User, authRequired: true },
 ];
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { authenticated } = useAuthState();
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
+
+  const handleAuth = async () => {
+    try {
+      if (authenticated) {
+        // For now, just reload the page to disconnect
+        window.location.reload();
+        setUserMenuOpen(false);
+      } else {
+        // You'll need to implement proper Origin SDK connection
+        console.log('Connect with Origin SDK');
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+    }
+  };
 
   return (
     <motion.header 
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-50 bg-white/90 dark:bg-camp-dark/90 backdrop-blur-xl border-b border-cool-3/20 dark:border-cool-1/20 shadow-xl"
+      className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-cool-3/20 shadow-lg"
     >
-      <nav className="mx-auto max-w-7xl " aria-label="Top">
-        <div className="flex w-full items-center justify-between py-6 lg:border-none">
+      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
+        <div className="flex w-full items-center justify-between py-4 lg:border-none">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center group">
               <motion.div 
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
                 className="relative"
               >
-                <div className="w-12 h-12 bg-gradient-to-r from-camp-orange to-warm-1 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center shadow-lg animate-pulse-glow">
                   <img 
-                    src="../../public/logo.png" 
-                    alt="Campfire Logo" 
+                    src="/logo.png" 
+                    alt="CoreCamp Logo" 
                     className="w-8 h-8 rounded-xl"
                     onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = 'none';
-                      ((e.currentTarget.nextElementSibling as HTMLElement)).style.display = 'block';
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'block';
                     }}
                   />
                   <Sparkles className="w-6 h-6 text-white hidden" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-warm-2 rounded-full animate-pulse">
+                  <div className="w-full h-full bg-white rounded-full animate-ping opacity-75"></div>
                 </div>
               </motion.div>
               <div className="ml-3">
                 <motion.h1 
                   whileHover={{ x: 2 }}
-                  className="text-2xl font-bold text-camp-dark dark:text-white"
+                  className="text-2xl font-bold text-camp-dark"
                 >
-                  Campfire
+                  <span className="text-gradient">CoreCamp</span>
                 </motion.h1>
-                <p className="text-xs text-cool-1 dark:text-cool-2 font-medium">
+                <p className="text-xs text-cool-1 font-medium">
                   IP Marketplace
                 </p>
               </div>
@@ -79,70 +99,99 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex lg:items-center lg:space-x-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`relative px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                  location.pathname === item.href
-                    ? 'text-white bg-gradient-to-r from-camp-orange to-warm-1 shadow-lg'
-                    : 'text-camp-dark dark:text-white hover:text-camp-orange dark:hover:text-warm-1 hover:bg-cool-3/20 dark:hover:bg-cool-1/20'
-                }`}
-              >
-                <motion.div 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center space-x-2"
+            {navigation.map((item) => {
+              const isVisible = !item.authRequired || authenticated;
+              if (!isVisible) return null;
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`relative px-4 py-2 rounded-2xl font-medium transition-all duration-300 ${
+                    location.pathname === item.href
+                      ? 'text-white bg-gradient-to-r from-camp-orange to-warm-1 shadow-lg'
+                      : 'text-camp-dark hover:text-camp-orange hover:bg-white/20'
+                  }`}
                 >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.name}</span>
-                </motion.div>
-              </Link>
-            ))}
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center space-x-2"
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.name}</span>
+                  </motion.div>
+                  {location.pathname === item.href && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-gradient-to-r from-camp-orange to-warm-1 rounded-2xl -z-10"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-3">
-            {/* Theme Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={toggleTheme}
-              className="p-2 rounded-xl bg-cool-3/20 dark:bg-cool-1/20 text-camp-dark dark:text-white hover:bg-camp-orange/20 transition-all duration-300"
-            >
-              {theme === 'light' ? (
-                <Moon className="w-5 h-5" />
-              ) : (
-                <Sun className="w-5 h-5" />
-              )}
-            </motion.button>
-
-            {/* Connect Wallet Button */}
+            {/* Auth Section */}
             {authenticated ? (
-              <div className="flex items-center space-x-2">
-                <div className="hidden sm:flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-xs font-medium text-green-700 dark:text-green-400">
-                    Connected
-                  </span>
-                </div>
+              <div className="relative">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center space-x-3 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-green-200/50 hover:border-green-300/70 transition-all duration-300"
                 >
-                  Disconnect
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="hidden sm:block">
+                    <div className="text-sm font-medium text-green-700">
+                      Connected
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-green-600 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </motion.button>
+
+                {/* User Dropdown */}
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-xl"
+                    >
+                      <div className="p-2 space-y-1">
+                        <Link
+                          to="/my-ips"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+                        >
+                          <User className="w-4 h-4" />
+                          <span className="text-sm font-medium">My Profile</span>
+                        </Link>
+                        <button
+                          onClick={handleAuth}
+                          className="w-full flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors text-red-600"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span className="text-sm font-medium">Disconnect</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => console.log('Connect wallet clicked')}
-                className="px-4 py-2 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                onClick={handleAuth}
+                className="flex items-center space-x-2 px-6 py-3 gradient-bg text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                Connect Wallet
+                <Wallet className="w-5 h-5" />
+                <span>Connect Origin</span>
               </motion.button>
             )}
 
@@ -151,7 +200,7 @@ export default function Header() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               type="button"
-              className="lg:hidden p-2 rounded-xl bg-cool-3/20 dark:bg-cool-1/20 text-camp-dark dark:text-white transition-all duration-300"
+              className="lg:hidden p-3 rounded-xl bg-gray-100 text-camp-dark transition-all duration-300"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
@@ -176,104 +225,86 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-              className="fixed top-0 right-0 w-80 h-full bg-white dark:bg-camp-dark shadow-2xl z-50 border-l border-cool-3 dark:border-cool-1"
+              className="fixed top-0 right-0 w-80 h-full bg-white/95 backdrop-blur-sm shadow-2xl z-50 border-l border-gray-200"
             >
               <div className="p-6">
                 {/* Mobile Header */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-camp-orange to-warm-1 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
                       <img 
                         src="/logo.png" 
-                        alt="Campfire Logo" 
+                        alt="CoreCamp Logo" 
                         className="w-6 h-6 rounded-lg"
                         onError={(e) => {
-                          (e.currentTarget as HTMLElement).style.display = 'none';
-                          ((e.currentTarget.nextElementSibling as HTMLElement)).style.display = 'block';
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'block';
                         }}
                       />
                       <Sparkles className="w-5 h-5 text-white hidden" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-camp-dark dark:text-white">Campfire</h2>
-                      <p className="text-xs text-cool-1 dark:text-cool-2">IP Marketplace</p>
+                      <h2 className="text-lg font-bold text-gradient">CoreCamp</h2>
+                      <p className="text-xs text-cool-1">IP Marketplace</p>
                     </div>
                   </div>
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                    className="p-2 rounded-xl bg-gray-100 text-gray-600"
                   >
                     <X className="h-6 w-6" />
                   </motion.button>
                 </div>
 
                 {/* Mobile Navigation */}
-                <nav className="space-y-3">
-                  {navigation.map((item, index) => (
-                    <motion.div
-                      key={item.name}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Link
-                        to={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                          location.pathname === item.href
-                            ? 'bg-gradient-to-r from-camp-orange to-warm-1 text-white shadow-lg'
-                            : 'text-camp-dark dark:text-white hover:bg-cool-3/20 dark:hover:bg-cool-1/20 hover:text-camp-orange dark:hover:text-warm-1'
-                        }`}
+                <nav className="space-y-3 mb-8">
+                  {navigation.map((item, index) => {
+                    const isVisible = !item.authRequired || authenticated;
+                    if (!isVisible) return null;
+                    
+                    return (
+                      <motion.div
+                        key={item.name}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
                       >
-                        <item.icon className="w-5 h-5" />
-                        <span>{item.name}</span>
-                      </Link>
-                    </motion.div>
-                  ))}
+                        <Link
+                          to={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center space-x-3 px-4 py-3 rounded-2xl font-medium transition-all duration-300 ${
+                            location.pathname === item.href
+                              ? 'gradient-bg text-white shadow-lg'
+                              : 'text-camp-dark hover:bg-gray-100 hover:text-camp-orange'
+                          }`}
+                        >
+                          <item.icon className="w-5 h-5" />
+                          <span>{item.name}</span>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
                 </nav>
 
-                {/* Mobile Theme Toggle */}
-                <div className="mt-6 pt-4 border-t border-cool-3 dark:border-cool-1">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={toggleTheme}
-                    className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-cool-3/20 dark:bg-cool-1/20 text-camp-dark dark:text-white transition-all duration-300"
-                  >
-                    <div className="flex items-center space-x-3">
-                      {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                      <span className="font-medium">
-                        {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-                      </span>
-                    </div>
-                    <div className={`w-10 h-5 rounded-full transition-colors duration-300 ${
-                      theme === 'dark' ? 'bg-camp-orange' : 'bg-cool-3'
-                    }`}>
-                      <motion.div
-                        animate={{ x: theme === 'dark' ? 20 : 0 }}
-                        className="w-5 h-5 bg-white rounded-full shadow-lg"
-                      />
-                    </div>
-                  </motion.button>
-                </div>
-
-                {/* Mobile Connect Wallet */}
-                <div className="mt-4">
+                {/* Mobile Auth */}
+                <div className="space-y-3">
                   {authenticated ? (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
+                      <div className="flex items-center justify-center space-x-2 p-4 bg-green-50 rounded-2xl border border-green-200">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                          Connected
+                        <span className="text-sm font-medium text-green-700">
+                          Connected to Origin
                         </span>
                       </div>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => window.location.reload()}
-                        className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                        onClick={handleAuth}
+                        className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-medium hover:shadow-lg transition-all duration-300"
                       >
                         Disconnect Wallet
                       </motion.button>
@@ -283,12 +314,13 @@ export default function Header() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        console.log('Connect wallet clicked');
+                        handleAuth();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 gradient-bg text-white rounded-2xl font-semibold hover:shadow-lg transition-all duration-300"
                     >
-                      Connect Wallet
+                      <Wallet className="w-5 h-5" />
+                      <span>Connect Origin</span>
                     </motion.button>
                   )}
                 </div>
