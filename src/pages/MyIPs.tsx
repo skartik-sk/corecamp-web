@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@campnetwork/origin/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Plus, 
   Edit, 
@@ -11,13 +11,8 @@ import {
   DollarSign, 
   Calendar, 
   Filter,
-  Zap,
-  Sparkles,
-  Crown,
-  Layers,
   Activity,
   BarChart3,
-  Rocket,
   Brain,
   Diamond,
   Palette,
@@ -335,93 +330,45 @@ export default function MyIPs() {
   }
 
   return (
-    <div className="min-h-screen bg-camp-light dark:bg-camp-dark">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Epic Header */}
+    <div className="min-h-screen bg-mesh-gradient py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <motion.div 
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
           className="mb-12"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
-            <div className="relative">
-              <motion.div
-                animate={{ 
-                  background: [
-                    'linear-gradient(45deg, #8b5cf6, #ec4899, #f97316)',
-                    'linear-gradient(45deg, #f97316, #8b5cf6, #ec4899)',
-                    'linear-gradient(45deg, #ec4899, #f97316, #8b5cf6)'
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -inset-2 rounded-3xl opacity-20 blur-xl"
-              />
-              <div className="relative bg-white/90 dark:bg-camp-dark/90 backdrop-blur-sm rounded-3xl p-8 border border-white/20 dark:border-cool-1/20">
-                <div className="flex items-center mb-4">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 bg-gradient-to-r from-camp-orange to-warm-1 rounded-3xl flex items-center justify-center mr-6 shadow-xl"
-                  >
-                    <Crown className="w-8 h-8 text-white" />
-                  </motion.div>
-                  <div>
-                    <motion.h1 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="text-6xl font-black text-camp-dark dark:text-white mb-2 flex items-center"
-                    >
-                      My IP Empire
-                      <motion.div
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <Sparkles className="w-10 h-10 ml-4 text-yellow-500" />
-                      </motion.div>
-                    </motion.h1>
-                    <motion.p 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-xl text-cool-1 dark:text-cool-2 flex items-center"
-                    >
-                      <Rocket className="w-5 h-5 mr-2 text-camp-orange" />
-                      Rule your intellectual property kingdom like a boss
-                    </motion.p>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="flex flex-wrap gap-3">
-                  <Link to="/create">
-                    <motion.button
-                      whileHover={{ scale: 1.05, rotate: 2 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex items-center px-6 py-3 bg-gradient-to-r from-camp-orange to-warm-1 text-white rounded-2xl hover:shadow-2xl transition-all duration-300 font-bold"
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      Create Masterpiece
-                    </motion.button>
-                  </Link>
-                  <motion.button
-                    whileHover={{ scale: 1.05, rotate: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                    className="flex items-center px-6 py-3 bg-white/80 dark:bg-camp-dark/80 text-camp-dark dark:text-white rounded-2xl hover:shadow-xl transition-all duration-300 font-bold border-2 border-camp-orange/30 dark:border-camp-orange/50"
-                  >
-                    <Layers className="w-5 h-5 mr-2" />
-                    {viewMode === 'grid' ? 'List View' : 'Grid View'}
-                  </motion.button>
-                </div>
-              </div>
+            <div>
+              <h1 className="text-5xl font-bold text-camp-dark mb-4">
+                My <span className="text-gradient">IP Portfolio</span>
+              </h1>
+              <p className="text-xl text-cool-1 max-w-2xl">
+                Manage and monetize your intellectual property assets. 
+                Track performance and optimize your creative empire.
+              </p>
+            </div>
+            <div className="flex gap-4 mt-6 lg:mt-0">
+              <Link to="/create">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center px-6 py-3 gradient-bg text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create New IP
+                </motion.button>
+              </Link>
             </div>
           </div>
         </motion.div>
 
-        {/* Insane Stats Grid */}
+        {/* Stats Grid */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
         >
           {[
@@ -429,102 +376,68 @@ export default function MyIPs() {
               label: 'Total IPs',
               value: userIPs.length,
               icon: Diamond,
-              gradient: 'from-camp-orange to-warm-1',
-              bgGradient: 'from-camp-orange/10 to-warm-1/20',
-              delay: 0
+              color: 'from-camp-orange to-warm-1'
             },
             {
               label: 'Revenue Generated',
               value: `${totalRevenue.toFixed(2)} ETH`,
               icon: DollarSign,
-              gradient: 'from-green-400 via-green-500 to-green-600',
-              bgGradient: 'from-green-500/10 to-green-600/20',
-              delay: 0.1
+              color: 'from-green-500 to-emerald-500'
             },
             {
               label: 'Total Views',
               value: totalViews.toLocaleString(),
               icon: Eye,
-              gradient: 'from-blue-400 via-blue-500 to-blue-600',
-              bgGradient: 'from-blue-500/10 to-blue-600/20',
-              delay: 0.2
+              color: 'from-blue-500 to-cyan-500'
             },
             {
-              label: 'Community Love',
+              label: 'Total Likes',
               value: totalLikes.toLocaleString(),
               icon: Heart,
-              gradient: 'from-pink-400 via-pink-500 to-pink-600',
-              bgGradient: 'from-pink-500/10 to-pink-600/20',
-              delay: 0.3
+              color: 'from-pink-500 to-rose-500'
             }
-          ].map((stat) => (
+          ].map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 40, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: stat.delay, type: "spring", stiffness: 200 }}
-              whileHover={{ y: -10, scale: 1.05 }}
-              className={`bg-gradient-to-br ${stat.bgGradient} backdrop-blur-sm rounded-3xl p-8 shadow-2xl border-2 border-white/20 dark:border-gray-700/20 group relative overflow-hidden`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 + 0.3 }}
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="glass-effect rounded-3xl p-6 border border-white/20 hover-lift"
             >
-              <motion.div
-                animate={{ 
-                  background: [
-                    `linear-gradient(45deg, transparent, ${stat.gradient.split(' ')[1]}/10, transparent)`,
-                    `linear-gradient(135deg, transparent, ${stat.gradient.split(' ')[1]}/20, transparent)`
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
-                className="absolute inset-0 opacity-50"
-              />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <p className="text-sm font-bold text-cool-1 dark:text-cool-2 uppercase tracking-wider">
-                      {stat.label}
-                    </p>
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: stat.delay + 0.3 }}
-                      className="text-4xl font-black text-camp-dark dark:text-white"
-                    >
-                      {stat.value}
-                    </motion.p>
-                  </div>
-                  <motion.div
-                    whileHover={{ rotate: 360, scale: 1.2 }}
-                    transition={{ type: "spring", stiffness: 200 }}
-                    className={`w-16 h-16 bg-gradient-to-r ${stat.gradient} rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-3xl`}
-                  >
-                    <stat.icon className="w-8 h-8 text-white" />
-                  </motion.div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-cool-1 uppercase tracking-wider">
+                    {stat.label}
+                  </p>
+                  <p className="text-2xl font-bold text-camp-dark">
+                    {stat.value}
+                  </p>
                 </div>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ delay: stat.delay + 0.5, duration: 1 }}
-                  className={`h-1 bg-gradient-to-r ${stat.gradient} rounded-full`}
-                />
+                <div className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-2xl flex items-center justify-center shadow-lg`}>
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Advanced Filter Bar */}
+        {/* Filters */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/90 dark:bg-camp-dark/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl mb-12 border-2 border-white/20 dark:border-cool-1/20"
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="glass-effect rounded-3xl p-6 mb-8 border border-white/20"
         >
           <div className="flex flex-col lg:flex-row gap-6 items-center">
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-3">
-                <Filter className="w-5 h-5 text-purple-500" />
-                <span className="text-sm font-bold text-camp-dark dark:text-white">Filter:</span>
+                <Filter className="w-5 h-5 text-camp-orange" />
+                <span className="text-sm font-semibold text-camp-dark">Filter:</span>
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="border-2 border-camp-orange/30 dark:border-camp-orange/50 rounded-xl px-4 py-2 focus:ring-4 focus:ring-camp-orange/20 focus:border-camp-orange bg-white dark:bg-camp-dark text-camp-dark dark:text-white font-medium"
+                  className="border border-white/20 rounded-xl px-4 py-2 glass-effect focus:ring-2 focus:ring-camp-orange focus:border-camp-orange font-medium"
                 >
                   {filterOptions.map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -532,12 +445,12 @@ export default function MyIPs() {
                 </select>
               </div>
               <div className="flex items-center gap-3">
-                <BarChart3 className="w-5 h-5 text-pink-500" />
-                <span className="text-sm font-bold text-camp-dark dark:text-white">Sort:</span>
+                <BarChart3 className="w-5 h-5 text-warm-1" />
+                <span className="text-sm font-semibold text-camp-dark">Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="border-2 border-warm-1/30 dark:border-warm-1/50 rounded-xl px-4 py-2 focus:ring-4 focus:ring-warm-1/20 focus:border-warm-1 bg-white dark:bg-camp-dark text-camp-dark dark:text-white font-medium"
+                  className="border border-white/20 rounded-xl px-4 py-2 glass-effect focus:ring-2 focus:ring-warm-1 focus:border-warm-1 font-medium"
                 >
                   {sortOptions.map(option => (
                     <option key={option} value={option}>{option}</option>
@@ -545,45 +458,39 @@ export default function MyIPs() {
                 </select>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-sm text-cool-1 dark:text-cool-2 lg:ml-auto">
-              <Activity className="w-4 h-4 text-orange-500" />
-              <span className="font-bold">
-                Showing {filteredAndSortedIPs.length} of {userIPs.length} masterpieces
+            <div className="flex items-center gap-3 text-sm text-cool-1 lg:ml-auto">
+              <Activity className="w-4 h-4 text-cool-2" />
+              <span className="font-medium">
+                Showing {filteredAndSortedIPs.length} of {userIPs.length} IP assets
               </span>
             </div>
           </div>
         </motion.div>
 
-        {/* IP Grid/List */}
+        {/* IP Grid */}
         {filteredAndSortedIPs.length === 0 ? (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-20"
+            transition={{ duration: 0.5 }}
+            className="text-center py-24"
           >
-            <motion.div
-              animate={{ 
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="w-32 h-32 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
-            >
-              <Star className="w-16 h-16 text-white" />
-            </motion.div>
-            <h3 className="text-3xl font-bold text-camp-dark dark:text-white mb-4">No IPs found</h3>
-            <p className="text-cool-1 dark:text-cool-2 text-lg mb-8">
-              {filter === 'All' ? "Time to create your first digital masterpiece!" : `No IPs match the "${filter}" filter.`}
+            <div className="w-20 h-20 gradient-bg rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <Star className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-semibold text-camp-dark mb-4">No IP assets found</h3>
+            <p className="text-cool-1 text-lg mb-8">
+              {filter === 'All' ? "Start building your IP portfolio today!" : `No IPs match the "${filter}" filter.`}
             </p>
             {filter === 'All' && (
               <Link to="/create">
                 <motion.button
-                  whileHover={{ scale: 1.05, rotate: 2 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white rounded-2xl hover:shadow-2xl transition-all duration-300 font-bold text-lg"
+                  className="inline-flex items-center px-8 py-4 gradient-bg text-white rounded-2xl hover:shadow-lg transition-all duration-300 font-semibold text-lg"
                 >
                   <Plus className="w-6 h-6 mr-3" />
-                  Create Your First Masterpiece
+                  Create Your First IP
                 </motion.button>
               </Link>
             )}
@@ -592,31 +499,21 @@ export default function MyIPs() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : "space-y-6"}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            <AnimatePresence mode="popLayout">
-              {filteredAndSortedIPs.map((ip, index) => (
-                <motion.div
-                  key={ip.tokenId || ip.id}
-                  initial={{ opacity: 0, y: 40, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.8 }}
-                  transition={{ 
-                    delay: index * 0.1,
-                    type: "spring",
-                    stiffness: 200 
-                  }}
-                  layout
-                >
-                  <EnhancedIPCard 
-                    ip={ip} 
-                    viewMode={viewMode}
-                    isSelected={selectedIP === (ip.tokenId || ip.id)}
-                    onSelect={() => setSelectedIP(selectedIP === (ip.tokenId || ip.id) ? null : (ip.tokenId || ip.id))}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {filteredAndSortedIPs.map((ip, index) => (
+              <motion.div
+                key={ip.tokenId || ip.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                className="glass-effect rounded-3xl overflow-hidden border border-white/20 hover-lift"
+              >
+                <SimpleIPCard ip={ip} />
+              </motion.div>
+            ))}
           </motion.div>
         )}
       </div>
@@ -624,14 +521,77 @@ export default function MyIPs() {
   );
 }
 
-interface EnhancedIPCardProps {
-  ip: any;
-  viewMode: 'grid' | 'list';
-  isSelected: boolean;
-  onSelect: () => void;
-}
+function SimpleIPCard({ ip }: { ip: any }) {
+  const IconComponent = typeIcons[ip.type as keyof typeof typeIcons] || typeIcons.default;
 
-function EnhancedIPCard({ ip, viewMode, isSelected, onSelect }: EnhancedIPCardProps) {
+  return (
+    <div className="p-6">
+      <div className="relative h-48 mb-4 overflow-hidden rounded-2xl">
+        <img 
+          src={ip.image || '/api/placeholder/400/300'} 
+          alt={ip.name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-4 left-4 flex items-center space-x-2">
+          <div className="flex items-center px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+            <IconComponent className="w-3 h-3 mr-1" />
+            {ip.type}
+          </div>
+        </div>
+        <div className="absolute top-4 right-4">
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+            ip.isListed 
+              ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+              : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+          }`}>
+            {ip.isListed ? 'Listed' : 'Draft'}
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-xl font-bold text-camp-dark mb-2">
+        {ip.name}
+      </h3>
+      <p className="text-cool-1 text-sm mb-4 line-clamp-2">
+        {ip.description}
+      </p>
+
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center text-sm text-cool-1">
+            <Eye className="w-4 h-4 mr-1" />
+            {ip.views.toLocaleString()}
+          </div>
+          <div className="flex items-center text-sm text-cool-1">
+            <Heart className="w-4 h-4 mr-1" />
+            {ip.likes.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-xs text-cool-1 uppercase tracking-wider">Price</p>
+          <p className="text-lg font-bold text-camp-dark">{ip.price}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-cool-1 uppercase tracking-wider">Revenue</p>
+          <p className="text-lg font-bold text-green-600">{ip.revenue}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Link 
+          to={`/ip/${ip.tokenId}`}
+          className="flex-1 bg-gradient-to-r from-camp-orange to-warm-1 text-white py-2 px-4 rounded-xl text-center text-sm font-semibold hover:shadow-lg transition-all duration-200"
+        >
+          View Details
+        </Link>
+        </button>
+      </div>
+    </div>
+  );
+}
   const getStatusColor = (status: string) => {
     switch ((status || 'active').toLowerCase()) {
       case 'active':
