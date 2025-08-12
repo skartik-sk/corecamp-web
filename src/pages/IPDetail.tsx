@@ -5,6 +5,7 @@ import { ArrowLeft, Heart, Share2, Eye, Calendar, User, DollarSign, Clock } from
 import TradingInterface from '@/components/TradingInterface'
 import { formatAddress } from '@/lib/utils'
 import type { Address } from 'viem'
+import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 
 interface IPDetails {
   tokenId: string
@@ -53,19 +54,23 @@ export default function IPDetail() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [isNegotiating, setIsNegotiating] = useState(false)
+  const {getDataByTokenId}= useCampfireIntegration()
 
   // Mock user address for demo - in real app this would come from wallet
   const userAddress = '0x1234567890abcdef' as Address
 
   useEffect(() => {
     // Simulate loading IP details
-    const timer = setTimeout(() => {
-      setIp(mockIP)
-      setIsLiked(mockIP.isLiked)
+    const fetchdata = async () => {
+      const data = await getDataByTokenId(BigInt(id || '0'))
+      if (data) {
+        setIp(data)
+        setIsLiked(data.isLiked)
+      }
       setIsLoading(false)
-    }, 1000)
+    }
 
-    return () => clearTimeout(timer)
+   fetchdata()
   }, [id])
 
   const handleLike = () => {

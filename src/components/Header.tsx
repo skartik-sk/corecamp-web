@@ -33,20 +33,16 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { authenticated } = useAuthState();
+  const { recoverProvider } = useAuth();
+
   const {disconnect} = useConnect();
   const {connect} = useConnect();
     const { openModal } = useModal();
-  const {origin, jwt,viem} = useAuth()
+
   const location = useLocation();
 
-  const { data: walletClient } = useWalletClient()
+  // const { data: walletClient } = useWalletClient()
 
-useEffect(() => {
- console.log(viem) 
-    if ( walletClient && origin) {
-      origin.setViemClient(walletClient)
-    }
-  }, [origin, walletClient])
   const handleAuth = async () => {
     try {
       if (authenticated) {
@@ -55,7 +51,8 @@ useEffect(() => {
         setUserMenuOpen(false);
       } else {
         // You'll need to implement proper Origin SDK connection
-      await openModal();
+       openModal();
+await recoverProvider()
 
 
         console.log('Connect with Origin SDK');

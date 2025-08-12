@@ -17,8 +17,7 @@ import {
   Star
 } from 'lucide-react'
 import clsx from 'clsx'
-import { useWalletClient } from 'wagmi'
-import { useEffect } from 'react'
+
 
 const features = [
   {

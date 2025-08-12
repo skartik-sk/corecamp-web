@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth, useAuthState } from '@campnetwork/origin/react'
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 import { Upload, FileText, Image as ImageIcon, Music, Video, Code, Palette, DollarSign, Clock, Percent, CheckCircle, ArrowLeft, ArrowRight, Sparkles, Star, TrendingUp, AlertCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, m } from 'framer-motion'
 
 const categories = [
   { id: 'art', name: 'Digital Art', icon: Palette, color: 'from-purple-400 to-pink-400' },
@@ -37,11 +37,11 @@ export default function CreateIP() {
     loading,
     error: hookError,
     success: hookSuccess,
-    isConnected,
+    // isConnected,
     clearError,
     clearSuccess 
   } = useCampfireIntegration()
-  
+  const isConnected =authenticated
   const [step, setStep] = useState<'upload' | 'metadata' | 'license' | 'mint'>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [metadata, setMetadata] = useState<IPMetadata>({
@@ -53,8 +53,8 @@ export default function CreateIP() {
     parentId: '',
   })
   const [license, setLicense] = useState<LicenseTerms>({
-    price: '0',
-    duration: '0',
+    price: '1',
+    duration: '2345000',
     royalty: '0',
     paymentToken: '0x0000000000000000000000000000000000000000', // ETH
   })
@@ -67,7 +67,10 @@ export default function CreateIP() {
   const finalError = hookError || error
   const finalSuccess = hookSuccess || success
 
-  console.log(viem)
+  useEffect(() => {
+    console.log(viem)
+
+  }, [viem])
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -100,6 +103,7 @@ export default function CreateIP() {
   }, [])
 
   const addTag = () => {
+
     if (tagInput.trim() && !metadata.tags.includes(tagInput.trim())) {
       setMetadata(prev => ({
         ...prev,
@@ -107,6 +111,7 @@ export default function CreateIP() {
       }))
       setTagInput('')
     }
+    //console.log(metadata.tags)
   }
 
   const removeTag = (tagToRemove: string) => {
@@ -122,15 +127,11 @@ export default function CreateIP() {
       setError('Missing required data for minting')
       return
     }
-    if (!authenticated || !origin || !jwt || !viem) {
+    if (!authenticated || !origin || !jwt ) {
     setError('Please connect and authenticate your wallet.');
     return;
   }
 
-    if (!isConnected) {
-      setError('Please connect your wallet to mint')
-      return
-    }
 
     // Clear previous messages
     setError('')
@@ -147,7 +148,7 @@ export default function CreateIP() {
           size: file.size,
         },
         license,
-        metadata.isDerivative && metadata.parentId ? metadata.parentId : undefined
+        metadata.isDerivative && metadata.parentId ? metadata.parentId : ''
       )
 
       if (tokenId) {
@@ -237,7 +238,7 @@ export default function CreateIP() {
                       Drop your file here or click to browse
                     </p>
                     <p className="text-cool-1 text-lg">Supports images, videos, audio, documents, and more</p>
-                    <p className="text-cool-2 text-sm mt-2">Maximum file size: 100MB</p>
+                    <p className="text-cool-2 text-sm mt-2">Maximum file size: 10MB</p>
                   </div>
                   <input
                     type="file"
