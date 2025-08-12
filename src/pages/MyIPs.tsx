@@ -241,7 +241,7 @@ export default function MyIPs() {
                 </div>
                 <TrendingUp className="w-5 h-5 text-green-500" />
               </div>
-              <div className="text-2xl font-bold text-camp-dark mb-1">{stats.totalRevenue} ETH</div>
+              <div className="text-2xl font-bold text-camp-dark mb-1">{stats.totalRevenue} CAMP</div>
               <div className="text-cool-1 text-sm">Total Revenue</div>
             </motion.div>
 
@@ -384,7 +384,7 @@ export default function MyIPs() {
               }
             >
               {filteredIPs.map((ip,index) => (
-                <IPCard key={index} ip={ip} viewMode={viewMode} />
+                <IPCard key={ip.id} value={ip.value} id={ip.id} ip={ip.metadata} viewMode={viewMode} />
               ))}
             </motion.div>
           )}
@@ -394,7 +394,8 @@ export default function MyIPs() {
   )
 }
 
-function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
+function IPCard({ id, ip, viewMode ,value }: { id: string; ip: any; value:string; viewMode: 'grid' | 'list' }) {
+  console.log(id)
   if (viewMode === 'list') {
     return (
       <motion.div
@@ -405,7 +406,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
         <div className="flex items-center gap-6">
           <div className="relative">
             <img
-              src={ip.url}
+              src={ip.image}
               alt={ip.name}
               className="w-24 h-18 rounded-xl object-cover"
             />
@@ -427,8 +428,8 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
                 </span>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold text-camp-dark">{ip.price} {ip.currency}</div>
-                <div className="text-sm text-green-600">+{ip.revenue} ETH earned</div>
+                <div className="text-lg font-bold text-camp-dark">{value} CAMP</div>
+                <div className="text-sm text-green-600">+{ip.revenue} CAMP earned</div>
               </div>
             </div>
 
@@ -454,7 +455,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
                   <Edit className="w-4 h-4 text-cool-1" />
                 </button>
                 <Link
-                  to={`/ip/${ip.id}`}
+                  to={`/ip/${id}`}
                   className="px-4 py-2 gradient-bg text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
                 >
                   View
@@ -477,7 +478,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
     >
       <div className="relative">
         <img
-          src={ip.url}
+          src={ip.image}
           alt={ip.type}
           className="w-full h-48 object-cover"
         />
@@ -525,13 +526,13 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-camp-dark">{ip.price} {ip.currency}</div>
-            <div className="text-xs text-green-600">+{ip.revenue} ETH</div>
+            <div className="text-lg font-bold text-camp-dark">{value} CAMP</div>
+            <div className="text-xs text-green-600">+{ip.revenue} CAMP</div>
           </div>
         </div>
 
         <Link
-          to={`/ip/${ip.id}`}
+             to={`/ip/${id}`}
           className="block w-full text-center px-4 py-3 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all"
         >
           View Details

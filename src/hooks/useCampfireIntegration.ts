@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '@campnetwork/origin/react'
+import { useAuth, useAuthState } from '@campnetwork/origin/react'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useReadContract, useWalletClient } from 'wagmi'
 import { parseEther, formatEther, type Address } from 'viem'
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '@/lib/contracts'
@@ -63,8 +63,13 @@ export interface LotteryData {
 }
 
 export function useCampfireIntegration() {
-  const { origin, jwt,recoverProvider } = useAuth()
-  const { address, isConnected } = useAccount()
+  const auth= useAuth()
+  const { authenticated:isConnected, loading: authLoading } = useAuthState()
+  const { origin, jwt,recoverProvider } = auth
+const address = auth.walletAddress
+
+
+
   const { writeContract, data: txHash, isPending } = useWriteContract()
   const { isSuccess, isError } = useWaitForTransactionReceipt({ hash: txHash })
   
@@ -72,9 +77,9 @@ export function useCampfireIntegration() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Get user's ETH balance
-  const { data: balance } = useBalance({ address })
- const {data: walletClient}=useWalletClient()
+  // // Get user's ETH balance
+  const { data: balance } = useBalance({ address: auth.walletAddress })
+
   // Clear messages after some time
   useEffect(() => {
     if (success || error) {
@@ -86,7 +91,7 @@ export function useCampfireIntegration() {
     }
   }, [success, error])
 
-  // Handle transaction results
+  //Handle transaction results
   useEffect(() => {
     if (isSuccess) {
       setSuccess('Transaction completed successfully!')
@@ -119,6 +124,34 @@ if (!origin) {
       setLoading(false)
     }}
 
+const getDataByTokenId = async (tokenId: bigint) => {
+    if (!origin) {
+      setError('Origin SDK not available')
+      return null
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+     const access=  await origin.dataStatus( tokenId)
+    //  const access=  await origin.hasAccess((address as Address) ?? ('0x0000000000000000000000000000000000000000' as Address), tokenId)
+     console.log(access)
+     let data 
+     if(access){
+
+        data = await origin.getData(tokenId)
+       console.log(data)
+      }
+      return data
+    } catch (err) {
+      console.error('Get NFT data error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to get NFT data')
+      return null
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getOriginData = async () => {
     if (!origin) {
@@ -130,8 +163,13 @@ if (!origin) {
     setError(null)
 
     try {
-      const data = await origin.getOriginUploads()
-      return data
+      // Build the URL with the user's address
+      const userAddress = address || ''
+      const url = `https://basecamp.cloud.blockscout.com/api/v2/addresses/${userAddress}/nft?type=ERC-721`
+      const response = await fetch(url)
+      if (!response.ok) throw new Error('Failed to fetch NFT data')
+      const body = await response.json()
+      return body.items
     } catch (err) {
       console.error('Get origin usage error:', err)
       setError(err instanceof Error ? err.message : 'Failed to get origin usage')
@@ -152,8 +190,10 @@ if (!origin) {
       royalty: string
       paymentToken: string
     },
-    parentId?: string
+    parentId: string
   ) => {
+await recoverProvider()
+
     if (!origin || !jwt) {
       setError('Please connect your wallet first')
       return null
@@ -161,26 +201,26 @@ if (!origin) {
     setLoading(true)
     setError(null)
     
-    recoverProvider()
     try {
       const licenseTerms = {
-        price: BigInt(parseFloat(license.price || '0') * 1e18),
-        duration: parseInt(license.duration || '0'),
+        price: BigInt(parseFloat(license.price || '1') * 1e18),
+        duration: parseInt(license.duration || '2345000'),
         royaltyBps: parseInt(license.royalty || '0') * 100,
         paymentToken: (license.paymentToken || '0x0000000000000000000000000000000000000000') as Address,
       }
 
-      const parentTokenId = parentId ? BigInt(parentId) : undefined
-
+      const parentTokenId = parentId === '' ? BigInt(0) : BigInt(parentId)
+      console.log(metadata)
+      console.log(licenseTerms)
       const tokenId = await origin.mintFile(
         file,
-        {
-          ...metadata,
+      {
+         ...metadata,
           mimeType: file.type,
           size: file.size,
         },
         licenseTerms,
-        parentTokenId
+       parentTokenId
       )
 
       setSuccess(`Successfully minted IP NFT with ID: ${tokenId}`)
@@ -621,6 +661,7 @@ if (!origin) {
     getOriginUsage,
     mintIPWithOrigin,
     buyAccessWithOrigin,
+    getDataByTokenId,
 
     // Marketplace functions
     listNFTOnMarketplace,
