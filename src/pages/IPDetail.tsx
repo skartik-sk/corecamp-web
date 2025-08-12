@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useAuth, useAuthState } from '@campnetwork/origin/react'
-import { ArrowLeft, Heart, Share2, Download, Eye, Calendar, User, DollarSign, Clock, MessageCircle } from 'lucide-react'
+import { useAuth } from '@campnetwork/origin/react'
+import { ArrowLeft, Heart, Share2, Eye, Calendar, User, DollarSign, Clock } from 'lucide-react'
+import TradingInterface from '@/components/TradingInterface'
+import { formatAddress } from '@/lib/utils'
+import type { Address } from 'viem'
 
 interface IPDetails {
   tokenId: string
@@ -46,11 +49,13 @@ const mockIP: IPDetails = {
 export default function IPDetail() {
   const { id } = useParams<{ id: string }>()
   const { origin } = useAuth()
-  const { authenticated } = useAuthState()
   const [ip, setIp] = useState<IPDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [isNegotiating, setIsNegotiating] = useState(false)
+
+  // Mock user address for demo - in real app this would come from wallet
+  const userAddress = '0x1234567890abcdef' as Address
 
   useEffect(() => {
     // Simulate loading IP details
@@ -70,18 +75,6 @@ export default function IPDetail() {
         ...ip,
         likes: isLiked ? ip.likes - 1 : ip.likes + 1
       })
-    }
-  }
-
-  const handleBuyAccess = async () => {
-    if (!origin || !ip) return
-
-    try {
-      // This would call the Origin SDK to buy access
-      console.log('Buying access to IP:', ip.tokenId)
-      // await origin.buyAccess(BigInt(ip.tokenId), 1)
-    } catch (error) {
-      console.error('Error buying access:', error)
     }
   }
 
@@ -253,8 +246,16 @@ export default function IPDetail() {
             </div>
 
             {/* Licensing & Purchase */}
+            <TradingInterface
+              tokenId={BigInt(ip.tokenId)}
+              ipOwner={ip.owner as Address}
+              currentPrice={ip.price.replace(' ETH', '')}
+              isOwner={ip.owner === userAddress}
+            />
+
+            {/* Original licensing component - keeping for reference */}
             <div className="bg-white rounded-2xl p-6 card-shadow">
-              <h3 className="text-xl font-semibold text-camp-dark mb-4">License Terms</h3>
+              <h3 className="text-xl font-semibold text-camp-dark mb-4">License Information</h3>
               
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between">
@@ -280,37 +281,10 @@ export default function IPDetail() {
                   <span className="text-camp-dark">{ip.royalty}%</span>
                 </div>
               </div>
-
-              {authenticated ? (
-                <div className="space-y-3">
-                  <button
-                    onClick={handleBuyAccess}
-                    className="w-full py-3 bg-camp-orange text-white rounded-lg hover:bg-warm-1 transition-colors font-medium"
-                  >
-                    Buy License - {ip.price}
-                  </button>
-                  
-                  <button
-                    onClick={() => setIsNegotiating(true)}
-                    className="w-full py-3 border border-camp-orange text-camp-orange bg-white hover:bg-camp-orange hover:text-white transition-colors rounded-lg font-medium flex items-center justify-center"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Negotiate Terms
-                  </button>
-                  
-                  <button className="w-full py-3 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-colors rounded-lg font-medium flex items-center justify-center">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Preview
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-cool-1 mb-4">Connect your wallet to purchase this IP license</p>
-                  <button className="w-full py-3 bg-camp-orange text-white rounded-lg hover:bg-warm-1 transition-colors font-medium">
-                    Connect Wallet
-                  </button>
-                </div>
-              )}
+              
+              <p className="text-sm text-cool-1 mt-2">
+                This shows the original license terms from the IP NFT.
+              </p>
             </div>
           </div>
         </div>

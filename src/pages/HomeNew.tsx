@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth, useAuthState } from '@campnetwork/origin/react'
+import { useAuth, useAuthState, useModal } from '@campnetwork/origin/react'
 import { motion } from 'framer-motion'
 import { 
   ArrowRight, 
@@ -17,6 +17,8 @@ import {
   Star
 } from 'lucide-react'
 import clsx from 'clsx'
+import { useWalletClient } from 'wagmi'
+import { useEffect } from 'react'
 
 const features = [
   {
@@ -78,11 +80,13 @@ const itemVariants = {
 
 export default function HomeNew() {
   const { authenticated } = useAuthState()
-  const { login } = useAuth()
+
+      const { openModal } = useModal();
+
 
   const handleConnectWallet = async () => {
     try {
-      await login()
+      await openModal()
     } catch (error) {
       console.error('Failed to connect wallet:', error)
     }

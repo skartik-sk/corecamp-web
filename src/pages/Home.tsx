@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
-import { useAuthState } from '@campnetwork/origin/react'
+import { useAuth, useAuthState } from '@campnetwork/origin/react'
 import { ArrowRight, Zap, Shield, Users, Flame, Star, TrendingUp } from 'lucide-react'
+import { useEffect } from 'react'
+import { useWalletClient } from 'wagmi'
 
 const features = [
   {
@@ -29,6 +31,7 @@ const stats = [
 
 export default function Home() {
   const { authenticated } = useAuthState()
+ 
 
   return (
     <div className="relative overflow-hidden">

@@ -1,24 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// Mock VRF Coordinator interface for local testing
-interface VRFCoordinatorV2Interface {
-    function requestRandomWords(
-        bytes32 keyHash,
-        uint64 subId,
-        uint16 minimumRequestConfirmations,
-        uint32 callbackGasLimit,
-        uint32 numWords
-    ) external returns (uint256 requestId);
-}
-
 /**
  * @title CoreCampLottery
- * @dev Lottery contract for IP-NFTs with Chainlink VRF for fair randomness
+ * @dev Lottery contract for IP-NFTs with block-based pseudo-randomness
  */
 contract CoreCampLottery is ReentrancyGuard, Ownable {
     
@@ -32,7 +22,6 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         uint256 endTime;
         address winner;
         bool isDrawn;
-        uint256 vrfRequestId;
     }
     
     // Counter for lottery IDs
@@ -47,20 +36,11 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     // Maps token ID to lottery ID (one lottery per token)
     mapping(uint256 => uint256) public tokenToLotteryId;
     
-    // Maps VRF request ID to lottery ID
-    mapping(uint256 => uint256) public vrfRequestToLotteryId;
     
     // Reference to the CampfireIPNFT contract
     IERC721 public immutable campfireNFT;
     
-    // VRF Coordinator
-    VRFCoordinatorV2Interface public immutable vrfCoordinator;
-    
-    // VRF Configuration
-    bytes32 public keyHash;
-    uint64 public subscriptionId;
-    uint16 public requestConfirmations = 3;
-    uint32 public callbackGasLimit = 300000;
+
     
     // Platform fee in basis points (100 = 1%)
     uint256 public platformFeeBps = 250; // 2.5%
@@ -74,24 +54,13 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     // Events
     event LotteryCreated(uint256 indexed lotteryId, uint256 indexed tokenId, address indexed owner, uint256 ticketPrice, uint256 maxTickets, uint256 endTime);
     event TicketPurchased(uint256 indexed lotteryId, address indexed buyer, uint256 ticketNumber);
-    event LotteryDrawRequested(uint256 indexed lotteryId, uint256 vrfRequestId);
     event LotteryDrawCompleted(uint256 indexed lotteryId, address indexed winner, uint256 randomWord);
     event LotteryCancelled(uint256 indexed lotteryId, address indexed owner);
     event PrizeDistributed(uint256 indexed lotteryId, address indexed winner, address indexed owner, uint256 prizeAmount);
     
-    constructor(
-        address _campfireNFT,
-        address _vrfCoordinator,
-        bytes32 _keyHash,
-        uint64 _subscriptionId
-    ) {
+    constructor(address _campfireNFT) {
         require(_campfireNFT != address(0), "Invalid NFT contract address");
-        require(_vrfCoordinator != address(0), "Invalid VRF coordinator address");
-        
         campfireNFT = IERC721(_campfireNFT);
-        vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
-        keyHash = _keyHash;
-        subscriptionId = _subscriptionId;
     }
     
     /**
@@ -128,8 +97,7 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
             createdAt: block.timestamp,
             endTime: endTime,
             winner: address(0),
-            isDrawn: false,
-            vrfRequestId: 0
+            isDrawn: false
         });
         
         lotteryToTokenId[lotteryId] = tokenId;
@@ -151,19 +119,19 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         require(lottery.players.length < lottery.maxTickets, "Lottery is sold out");
         require(msg.value == lottery.ticketPrice, "Incorrect ticket price");
         require(msg.sender != lottery.owner, "Owner cannot buy tickets");
-        
+
         // Check if user already has a ticket (optional restriction)
         for (uint256 i = 0; i < lottery.players.length; i++) {
             require(lottery.players[i] != msg.sender, "Already purchased ticket");
         }
-        
+
         lottery.players.push(msg.sender);
-        
+
         emit TicketPurchased(lotteryId, msg.sender, lottery.players.length);
-        
+
         // Auto-draw if all tickets sold
         if (lottery.players.length == lottery.maxTickets) {
-            _requestRandomDraw(lotteryId);
+            _drawWinner(lotteryId);
         }
     }
     
@@ -180,8 +148,7 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
             block.timestamp >= lottery.endTime || lottery.players.length == lottery.maxTickets,
             "Cannot draw yet"
         );
-        
-        _requestRandomDraw(lotteryId);
+        _drawWinner(lotteryId);
     }
     
     /**
@@ -201,55 +168,40 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         emit LotteryCancelled(lotteryId, msg.sender);
     }
     
+
     /**
-     * @dev Internal function to request random number from VRF
+     * @dev Internal function to draw winner using block-based pseudo-randomness
      */
-    function _requestRandomDraw(uint256 lotteryId) internal {
-        Lottery storage lottery = lotteries[lotteryId];
-        
-        uint256 requestId = vrfCoordinator.requestRandomWords(
-            keyHash,
-            subscriptionId,
-            requestConfirmations,
-            callbackGasLimit,
-            1 // Number of random words
-        );
-        
-        lottery.vrfRequestId = requestId;
-        vrfRequestToLotteryId[requestId] = lotteryId;
-        
-        emit LotteryDrawRequested(lotteryId, requestId);
-    }
-    
-    /**
-     * @dev Callback function called by VRF Coordinator
-     * @param requestId The VRF request ID
-     * @param randomWords Array of random words
-     */
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) external {
-        require(msg.sender == address(vrfCoordinator), "Only VRF coordinator can call");
-        
-        uint256 lotteryId = vrfRequestToLotteryId[requestId];
-        require(lotteryId != 0, "Invalid request ID");
-        
+    function _drawWinner(uint256 lotteryId) internal {
         Lottery storage lottery = lotteries[lotteryId];
         require(lottery.isActive, "Lottery is not active");
         require(!lottery.isDrawn, "Lottery already drawn");
         require(lottery.players.length > 0, "No players");
-        
-        uint256 randomWord = randomWords[0];
+
+        uint256 randomWord = uint256(
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.prevrandao,
+                    msg.sender,
+                    lottery.players.length
+                )
+            )
+        );
         uint256 winnerIndex = randomWord % lottery.players.length;
         address winner = lottery.players[winnerIndex];
-        
+
         lottery.winner = winner;
         lottery.isDrawn = true;
         lottery.isActive = false;
-        
+
         emit LotteryDrawCompleted(lotteryId, winner, randomWord);
-        
+
         // Distribute prizes
         _distributePrizes(lotteryId);
     }
+    
+
     
     /**
      * @dev Internal function to distribute prizes
@@ -331,20 +283,7 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
                (block.timestamp >= lottery.endTime || lottery.players.length == lottery.maxTickets);
     }
     
-    /**
-     * @dev Update VRF configuration (only owner)
-     */
-    function updateVRFConfig(
-        bytes32 _keyHash,
-        uint64 _subscriptionId,
-        uint16 _requestConfirmations,
-        uint32 _callbackGasLimit
-    ) external onlyOwner {
-        keyHash = _keyHash;
-        subscriptionId = _subscriptionId;
-        requestConfirmations = _requestConfirmations;
-        callbackGasLimit = _callbackGasLimit;
-    }
+
     
     /**
      * @dev Update platform fee (only owner)

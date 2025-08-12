@@ -1,0 +1,9 @@
+Network: camp
+  CampfireIPNFT: 0x5a3f832b47b948dA27aE788E96A0CD7BB0dCd1c1
+  CoreCampFactory: 0x919C2083ae45969794B91CBa3025eEfc6D19cF78
+  Deployment ID: 1
+  === Marketplace Contracts ===
+  CoreCampMarketplace: 0x4A790778B73b3028e7EdAf967a5a5EB92B3e395b
+  CoreCampEscrow: 0xD353754B3Acf187e90106877DC8e304Bd5da1474
+  CoreCampAuction: 0xb076fb7eDccD48Aed7EBde145EA62072357f1CaE
+  CoreCampLottery: 0xfbF4e5DE27ccFDCD84d83093FCDAEFeE8004BCEB

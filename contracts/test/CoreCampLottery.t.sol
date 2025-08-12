@@ -4,37 +4,27 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../src/CampfireIPNFT.sol";
 import "../src/CoreCampLottery.sol";
-import "../src/mocks/MockVRFCoordinatorV2.sol";
-
 contract CoreCampLotteryTest is Test {
-    
     CampfireIPNFT public nftContract;
     CoreCampLottery public lottery;
-    MockVRFCoordinatorV2 public mockVRF;
-    
     address public owner;
     address public seller;
     address public player1;
     address public player2;
     address public player3;
     address public nonPlayer;
-    
     uint256 public tokenId;
     uint256 public lotteryId;
     uint256 public constant TICKET_PRICE = 0.1 ether;
     uint256 public constant MAX_TICKETS = 5;
     uint256 public constant LOTTERY_DURATION = 7 days;
-    
-    bytes32 public constant KEY_HASH = bytes32("test_key_hash");
-    uint64 public constant SUBSCRIPTION_ID = 1;
     receive() external payable {}
     event LotteryCreated(uint256 indexed lotteryId, uint256 indexed tokenId, address indexed owner, uint256 ticketPrice, uint256 maxTickets, uint256 endTime);
     event TicketPurchased(uint256 indexed lotteryId, address indexed buyer, uint256 ticketNumber);
-    event LotteryDrawRequested(uint256 indexed lotteryId, uint256 vrfRequestId);
     event LotteryDrawCompleted(uint256 indexed lotteryId, address indexed winner, uint256 randomWord);
     event LotteryCancelled(uint256 indexed lotteryId, address indexed owner);
     event PrizeDistributed(uint256 indexed lotteryId, address indexed winner, address indexed owner, uint256 prizeAmount);
-    
+
     function setUp() public {
         owner = address(this);
         seller = makeAddr("seller");
@@ -42,29 +32,19 @@ contract CoreCampLotteryTest is Test {
         player2 = makeAddr("player2");
         player3 = makeAddr("player3");
         nonPlayer = makeAddr("nonPlayer");
-        
-        // Deploy mock VRF coordinator
-        mockVRF = new MockVRFCoordinatorV2();
-        
+
         // Deploy contracts
         nftContract = new CampfireIPNFT();
-        lottery = new CoreCampLottery(
-            address(nftContract),
-            address(mockVRF),
-            KEY_HASH,
-            SUBSCRIPTION_ID
-        );
-        
+        lottery = new CoreCampLottery(address(nftContract));
+
         // Mint NFT to seller
         vm.startPrank(seller);
-        
         CampfireIPNFT.LicenseTerms memory licenseTerms = CampfireIPNFT.LicenseTerms({
             price: 0.1 ether,
             duration: 365 days,
             royaltyBps: 500,
             paymentToken: address(0)
         });
-        
         CampfireIPNFT.IPMetadata memory ipMetadata = CampfireIPNFT.IPMetadata({
             creator: seller,
             category: "Art",
@@ -74,11 +54,9 @@ contract CoreCampLotteryTest is Test {
             parentTokenId: 0
         });
         ipMetadata.tags[0] = "Digital";
-        
         tokenId = nftContract.mintIP(seller, "ipfs://test-uri", licenseTerms, ipMetadata);
-        
         vm.stopPrank();
-        
+
         // Fund players
         vm.deal(player1, 10 ether);
         vm.deal(player2, 10 ether);
@@ -297,7 +275,7 @@ contract CoreCampLotteryTest is Test {
         
         vm.startPrank(nonPlayer);
         
-        vm.expectRevert("Lottery is sold out");
+        vm.expectRevert("Lottery is not active");
         lottery.buyTicket{value: TICKET_PRICE}(lotteryId);
         
         vm.stopPrank();
@@ -306,38 +284,35 @@ contract CoreCampLotteryTest is Test {
     function test_buyTicket_AutoDrawWhenSoldOut() public {
         // Setup: Start lottery
         lotteryId = _setupLottery();
-        
+
         // Buy all tickets except the last one
         vm.startPrank(player1);
         lottery.buyTicket{value: TICKET_PRICE}(lotteryId);
         vm.stopPrank();
-        
+
         vm.startPrank(player2);
         lottery.buyTicket{value: TICKET_PRICE}(lotteryId);
         vm.stopPrank();
-        
+
         vm.startPrank(player3);
         lottery.buyTicket{value: TICKET_PRICE}(lotteryId);
         vm.stopPrank();
-        
+
         address fourthPlayer = makeAddr("fourthPlayer");
         vm.deal(fourthPlayer, 10 ether);
-        
         vm.startPrank(fourthPlayer);
         lottery.buyTicket{value: TICKET_PRICE}(lotteryId);
         vm.stopPrank();
-        
+
         // Final ticket should trigger auto-draw
         address fifthPlayer = makeAddr("fifthPlayer");
         vm.deal(fifthPlayer, 10 ether);
-        
         vm.startPrank(fifthPlayer);
-        
+        // Expect draw event
         vm.expectEmit(true, false, false, false);
-        emit LotteryDrawRequested(lotteryId, 0); // requestId will be generated
-        
+        // Winner and randomWord are not known in advance, so just check event signature
+        emit LotteryDrawCompleted(lotteryId, address(0), 0);
         lottery.buyTicket{value: TICKET_PRICE}(lotteryId);
-        
         vm.stopPrank();
     }
     
@@ -347,14 +322,17 @@ contract CoreCampLotteryTest is Test {
         // Setup: Start lottery and buy tickets
         lotteryId = _setupLottery();
         _buyTicketsForSomePlayers();
-        
+
         // Fast forward past end time
         vm.warp(block.timestamp + LOTTERY_DURATION + 1);
-        
+
         vm.expectEmit(true, false, false, false);
-        emit LotteryDrawRequested(lotteryId, 0); // requestId will be generated
-        
+        emit LotteryDrawCompleted(lotteryId, address(0), 0);
+
+        // vm.expectRevert("Lottery is not active");
         lottery.drawLottery(lotteryId);
+        
+
     }
     
     function test_drawLottery_RevertCannotDrawYet() public {
@@ -382,65 +360,9 @@ contract CoreCampLotteryTest is Test {
     
     // ==================== VRF CALLBACK TESTS ====================
     
-    function test_fulfillRandomWords_Success() public {
-        // Setup: Start lottery, buy tickets, and request draw
-        lotteryId = _setupLottery();
-        _buyTicketsForSomePlayers();
-        
-        // Fast forward and draw
-        vm.warp(block.timestamp + LOTTERY_DURATION + 1);
-        lottery.drawLottery(lotteryId);
-        
-        // Get the VRF request ID
-        uint256 requestId = 1; // First request ID from mock
-        
-        // Mock the random number to select player2 (index 1)
-        uint256 randomNumber = 1;
-        
-        uint256 sellerBalanceBefore = seller.balance;
-        
-        vm.expectEmit(true, true, false, true);
-        emit LotteryDrawCompleted(lotteryId, player2, randomNumber);
-        
-        vm.expectEmit(true, true, true, false);
-        emit PrizeDistributed(lotteryId, player2, seller, 0); // Amount will be calculated
-        
-        // Fulfill the VRF request
-        mockVRF.fulfillRandomWordsWithNumber(requestId, randomNumber);
-        
-        // Verify winner
-        (,,,, uint256 ticketsSold,, address winner, bool isDrawn) = lottery.getLottery(lotteryId);
-        assertEq(winner, player2);
-        assertTrue(isDrawn);
-        
-        // Verify NFT transfer
-        assertEq(nftContract.ownerOf(tokenId), player2);
-        
-        // Verify payment to seller (considering platform fee)
-        uint256 totalRevenue = ticketsSold * TICKET_PRICE;
-        uint256 platformFee = (totalRevenue * 250) / 10000;
-        uint256 expectedSellerAmount = totalRevenue - platformFee;
-        assertEq(seller.balance - sellerBalanceBefore, expectedSellerAmount);
-    }
+
     
-    function test_fulfillRandomWords_RevertOnlyVRFCoordinator() public {
-        // Setup: Start lottery, buy tickets, and request draw
-        lotteryId = _setupLottery();
-        _buyTicketsForSomePlayers();
-        
-        vm.warp(block.timestamp + LOTTERY_DURATION + 1);
-        lottery.drawLottery(lotteryId);
-        
-        uint256[] memory randomWords = new uint256[](1);
-        randomWords[0] = 123;
-        
-        vm.startPrank(player1);
-        
-        vm.expectRevert("Only VRF coordinator can call");
-        lottery.fulfillRandomWords(1, randomWords);
-        
-        vm.stopPrank();
-    }
+
     
     // ==================== CANCEL LOTTERY TESTS ====================
     
@@ -517,7 +439,7 @@ contract CoreCampLotteryTest is Test {
         // Buy all tickets
         _buyTicketsForAllPlayers();
         
-        assertTrue(lottery.canDrawLottery(lotteryId));
+        assertFalse(lottery.canDrawLottery(lotteryId));
     }
     
     // ==================== HELPER FUNCTIONS ====================
@@ -572,19 +494,7 @@ contract CoreCampLotteryTest is Test {
     
     // ==================== OWNER FUNCTIONS TESTS ====================
     
-    function test_updateVRFConfig() public {
-        bytes32 newKeyHash = bytes32("new_key_hash");
-        uint64 newSubId = 2;
-        uint16 newConfirmations = 5;
-        uint32 newGasLimit = 400000;
-        
-        lottery.updateVRFConfig(newKeyHash, newSubId, newConfirmations, newGasLimit);
-        
-        assertEq(lottery.keyHash(), newKeyHash);
-        assertEq(lottery.subscriptionId(), newSubId);
-        assertEq(lottery.requestConfirmations(), newConfirmations);
-        assertEq(lottery.callbackGasLimit(), newGasLimit);
-    }
+
     
     function test_updatePlatformFee_Success() public {
         uint256 newFeeBps = 500; // 5%

@@ -20,6 +20,7 @@ import {
   Camera,
   BarChart3
 } from 'lucide-react'
+import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 
 // Mock data for demonstration
 const mockUserIPs = [
@@ -99,22 +100,53 @@ const itemVariants = {
 
 export default function MyIPs() {
   const { authenticated } = useAuthState()
-  const [ipAssets] = useState<any[]>(mockUserIPs)
+  const { getOriginData,getOriginUsage,isPending : isLoading } = useCampfireIntegration()
+  const [ipAssets,setIpAssets] = useState<any[]>([])
   const [filteredIPs, setFilteredIPs] = useState<any[]>(mockUserIPs)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [isLoading] = useState(false)
-  const [stats] = useState({
+
+  const [stats,setStats] = useState({
     totalIPs: 3,
     totalRevenue: 23.4,
     totalViews: 2866,
     totalLikes: 479
   })
 
+    useEffect(() => {
+  const fetchData = async () => {
+    const data = await getOriginData()
+    if (data) {
+      console.log(data)
+      setIpAssets(data)
+      setStats(prev => ({
+        ...prev,
+        totalIPs: data.length
+      }))
+    }
+    const usage = await getOriginUsage()
+    
+      console.log(usage?.data.user)
+      if(usage?.data.user){
+        setStats(prev => ({
+        ...prev,
+        totalRevenue: usage.data.user.points,
+        totalLikes: usage.data.user.multiplier,
+
+      }))
+      }
+    
+  }
+
+  fetchData()
+}, [])
+
   useEffect(() => {
+
     // Filter IPs based on search and category
-    let filtered = ipAssets
+    let filtered =ipAssets
+
 
     if (searchTerm) {
       filtered = filtered.filter(ip =>
@@ -129,6 +161,7 @@ export default function MyIPs() {
 
     setFilteredIPs(filtered)
   }, [ipAssets, searchTerm, filterCategory])
+
 
   const categories = ['All', 'AI/ML', 'Art', 'Code', 'Music', 'Design', 'Video', 'Writing']
 
@@ -155,6 +188,8 @@ export default function MyIPs() {
       </div>
     )
   }
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-camp-light/30 via-white to-cool-3/20 py-8">
@@ -348,8 +383,8 @@ export default function MyIPs() {
                   : 'space-y-4'
               }
             >
-              {filteredIPs.map((ip) => (
-                <IPCard key={ip.id} ip={ip} viewMode={viewMode} />
+              {filteredIPs.map((ip,index) => (
+                <IPCard key={index} ip={ip} viewMode={viewMode} />
               ))}
             </motion.div>
           )}
@@ -370,7 +405,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
         <div className="flex items-center gap-6">
           <div className="relative">
             <img
-              src={ip.image}
+              src={ip.url}
               alt={ip.name}
               className="w-24 h-18 rounded-xl object-cover"
             />
@@ -435,13 +470,15 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
   return (
     <motion.div
       variants={itemVariants}
+      initial="hidden"
+              animate="visible"
       whileHover={{ scale: 1.05 }}
       className="glass-effect rounded-2xl overflow-hidden border border-white/20 hover-lift group"
     >
       <div className="relative">
         <img
-          src={ip.image}
-          alt={ip.name}
+          src={ip.url}
+          alt={ip.type}
           className="w-full h-48 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-camp-dark/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

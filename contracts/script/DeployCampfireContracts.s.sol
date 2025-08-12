@@ -24,18 +24,7 @@ contract DeployCampfireContracts is Script {
     
     function setUp() public {
         // Ethereum Mainnet VRF Config
-        vrfConfigs["mainnet"] = VRFConfig({
-            coordinator: 0x271682DEB8C4E0901D1a1550aD2e64D568E69909,
-            keyHash: 0x8af398995b04c28e9951adb9721ef74c74f93e6a478f39e7e0777be13527e7ef,
-            subscriptionId: 0 // This needs to be set after creating subscription
-        });
         
-        // Ethereum Sepolia VRF Config
-        vrfConfigs["sepolia"] = VRFConfig({
-            coordinator: 0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625,
-            keyHash: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c,
-            subscriptionId: 0 // This needs to be set after creating subscription
-        });
         
         // Polygon Mainnet VRF Config
         // vrfConfigs["polygon"] = VRFConfig({
@@ -87,19 +76,14 @@ contract DeployCampfireContracts is Script {
     function deployLocal() internal returns (address nftContract, address factory, uint256 deploymentId) {
         console.log("Deploying to local network with mock VRF...");
         
-        // Deploy mock VRF coordinator for local testing
-        MockVRFCoordinatorV2 mockVRF = new MockVRFCoordinatorV2();
-        console.log("MockVRFCoordinatorV2 deployed at:", address(mockVRF));
-        
+   
         // Deploy main contracts
-        CampfireIPNFT nft = new CampfireIPNFT();
-        nftContract = address(nft);
+
+        nftContract = address(0x5a3f832b47b948dA27aE788E96A0CD7BB0dCd1c1);
         console.log("CampfireIPNFT deployed at:", nftContract);
         
         CoreCampFactory factoryContract = new CoreCampFactory(
-            address(mockVRF),
-            bytes32("mock_key_hash"),
-            1
+
         );
         factory = address(factoryContract);
         console.log("CoreCampFactory deployed at:", factory);
@@ -114,25 +98,14 @@ contract DeployCampfireContracts is Script {
     function deployToNetwork(string memory network) internal returns (address nftContract, address factory, uint256 deploymentId) {
         console.log("Deploying to network:", network);
         
-        VRFConfig memory config = vrfConfigs[network];
-        require(config.coordinator != address(0), "VRF config not found for network");
         
-        if (config.subscriptionId == 0) {
-            console.log("WARNING: VRF subscription ID is 0. You need to:");
-            console.log("1. Create a VRF subscription at vrf.chain.link");
-            console.log("2. Update the subscription ID in this script");
-            console.log("3. Add the deployed lottery contract as a consumer");
-        }
-        
-        // Deploy main contracts
-        CampfireIPNFT nft = new CampfireIPNFT();
-        nftContract = address(nft);
+
+
+        nftContract = address(0x5a3f832b47b948dA27aE788E96A0CD7BB0dCd1c1);
         console.log("CampfireIPNFT deployed at:", nftContract);
         
         CoreCampFactory factoryContract = new CoreCampFactory(
-            config.coordinator,
-            config.keyHash,
-            config.subscriptionId
+
         );
         factory = address(factoryContract);
         console.log("CoreCampFactory deployed at:", factory);
@@ -165,55 +138,11 @@ contract DeployCampfireContracts is Script {
         string memory finalJson = vm.serializeAddress(json, "coreCampLottery", deployment.lottery);
         
         string memory filename = string.concat("deployments/", network, "-deployment.json");
-        vm.writeJson(finalJson, filename);
+        console.log("Deployment info JSON:", finalJson);
+
         
         console.log("Deployment info saved to:", filename);
     }
     
-    // Utility function to update VRF subscription ID after deployment
-    function updateVRFSubscriptionId(address factoryAddress, uint64 newSubscriptionId) external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
-        
-        CoreCampFactory factory = CoreCampFactory(payable(factoryAddress));
-        
-        // Get current config
-        address currentCoordinator = factory.vrfCoordinator();
-        bytes32 currentKeyHash = factory.keyHash();
-        
-        // Update with new subscription ID
-        factory.updateVRFConfig(currentCoordinator, currentKeyHash, newSubscriptionId);
-        
-        vm.stopBroadcast();
-        
-        console.log("VRF subscription ID updated to:", newSubscriptionId);
-    }
-    
-    // Function to deploy to a specific network with custom VRF config
-    function deployWithCustomVRF(
-        address vrfCoordinator,
-        bytes32 keyHash,
-        uint64 subscriptionId
-    ) external returns (address nftContract, address factory, uint256 deploymentId) {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
-        
-        // Deploy main contracts
-        CampfireIPNFT nft = new CampfireIPNFT();
-        nftContract = address(nft);
-        
-        CoreCampFactory factoryContract = new CoreCampFactory(
-            vrfCoordinator,
-            keyHash,
-            subscriptionId
-        );
-        factory = address(factoryContract);
-        
-        // Deploy marketplace contracts
-        deploymentId = factoryContract.deployMarketplace(nftContract);
-        
-        vm.stopBroadcast();
-        
-        return (nftContract, factory, deploymentId);
-    }
+ 
 }

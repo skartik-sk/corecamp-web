@@ -56,7 +56,7 @@ export default function Footer() {
           </p>
         </div>
 
-  {/* Removed duplicate/corrupted copyright and social links */}
+
       </div>
     </footer>
   )
