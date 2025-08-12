@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuthState } from '@campnetwork/origin/react';
+import { CampModal, MyCampModal, useAuth, useAuthState, useConnect, useModal } from '@campnetwork/origin/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Menu, 
@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronDown
 } from 'lucide-react';
+import { useWalletClient } from 'wagmi';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
@@ -32,16 +33,31 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { authenticated } = useAuthState();
+  const {disconnect} = useConnect();
+  const {connect} = useConnect();
+    const { openModal } = useModal();
+  const {origin, jwt,viem} = useAuth()
   const location = useLocation();
 
+  const { data: walletClient } = useWalletClient()
+
+useEffect(() => {
+ console.log(viem) 
+    if ( walletClient && origin) {
+      origin.setViemClient(walletClient)
+    }
+  }, [origin, walletClient])
   const handleAuth = async () => {
     try {
       if (authenticated) {
         // For now, just reload the page to disconnect
-        window.location.reload();
+       disconnect();
         setUserMenuOpen(false);
       } else {
         // You'll need to implement proper Origin SDK connection
+      await openModal();
+
+
         console.log('Connect with Origin SDK');
       }
     } catch (error) {
@@ -163,14 +179,20 @@ export default function Header() {
                       className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-xl"
                     >
                       <div className="p-2 space-y-1">
-                        <Link
+                        {/* <Link
                           to="/my-ips"
                           onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+                        > */}
+                        <CampModal />
+                        <button
+                          onClick={openModal}
                           className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
                         >
                           <User className="w-4 h-4" />
                           <span className="text-sm font-medium">My Profile</span>
-                        </Link>
+                          </button>
+                        {/* </Link> */}
                         <button
                           onClick={handleAuth}
                           className="w-full flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors text-red-600"
@@ -184,15 +206,18 @@ export default function Header() {
                 </AnimatePresence>
               </div>
             ) : (
+              <>
+              <CampModal injectButton={false} />
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleAuth}
-                className="flex items-center space-x-2 px-6 py-3 gradient-bg text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAuth}
+              className="flex items-center space-x-2 px-6 py-3 gradient-bg text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Wallet className="w-5 h-5" />
                 <span>Connect Origin</span>
               </motion.button>
+                </>
             )}
 
             {/* Mobile Menu Button */}
@@ -310,18 +335,19 @@ export default function Header() {
                       </motion.button>
                     </div>
                   ) : (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        handleAuth();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 gradient-bg text-white rounded-2xl font-semibold hover:shadow-lg transition-all duration-300"
-                    >
-                      <Wallet className="w-5 h-5" />
-                      <span>Connect Origin</span>
-                    </motion.button>
+                    <CampModal />
+                    // <motion.button
+                    // whileHover={{ scale: 1.02 }}
+                    // whileTap={{ scale: 0.98 }}
+                    // onClick={() => {
+                    //   handleAuth();
+                    //   setMobileMenuOpen(false);
+                    // }}
+                    // className="w-full flex items-center justify-center space-x-2 px-4 py-3 gradient-bg text-white rounded-2xl font-semibold hover:shadow-lg transition-all duration-300"
+                    // >
+                    //   <Wallet className="w-5 h-5" />
+                    //   <span>Connect Origin</span>
+                    // </motion.button>
                   )}
                 </div>
               </div>

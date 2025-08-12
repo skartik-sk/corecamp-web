@@ -37,10 +37,7 @@ contract CoreCampFactory is Ownable, ReentrancyGuard {
     uint256[] public allDeploymentIds;
      receive() external payable {}
     
-    // VRF Configuration for lottery deployments
-    address public vrfCoordinator;
-    bytes32 public keyHash;
-    uint64 public subscriptionId;
+
     
     // Events
     event MarketplaceDeployed(
@@ -52,17 +49,9 @@ contract CoreCampFactory is Ownable, ReentrancyGuard {
         address lottery
     );
     event DeploymentStatusChanged(uint256 indexed deploymentId, bool isActive);
-    event VRFConfigUpdated(address vrfCoordinator, bytes32 keyHash, uint64 subscriptionId);
+
     
-    constructor(
-        address _vrfCoordinator,
-        bytes32 _keyHash,
-        uint64 _subscriptionId
-    ) {
-        vrfCoordinator = _vrfCoordinator;
-        keyHash = _keyHash;
-        subscriptionId = _subscriptionId;
-    }
+    constructor() {}
     
     /**
      * @dev Deploy all marketplace contracts for a given NFT contract
@@ -79,12 +68,7 @@ contract CoreCampFactory is Ownable, ReentrancyGuard {
         CoreCampMarketplace marketplace = new CoreCampMarketplace(nftContract);
         CoreCampEscrow escrow = new CoreCampEscrow(nftContract);
         CoreCampAuction auction = new CoreCampAuction(nftContract);
-        CoreCampLottery lottery = new CoreCampLottery(
-            nftContract,
-            vrfCoordinator,
-            keyHash,
-            subscriptionId
-        );
+    CoreCampLottery lottery = new CoreCampLottery(nftContract);
         
         // Store deployment info
         deployments[deploymentId] = MarketplaceContracts({
@@ -165,23 +149,7 @@ contract CoreCampFactory is Ownable, ReentrancyGuard {
         emit DeploymentStatusChanged(deploymentId, isActive);
     }
     
-    /**
-     * @dev Update VRF configuration for future lottery deployments
-     * @param _vrfCoordinator New VRF coordinator address
-     * @param _keyHash New key hash
-     * @param _subscriptionId New subscription ID
-     */
-    function updateVRFConfig(
-        address _vrfCoordinator,
-        bytes32 _keyHash,
-        uint64 _subscriptionId
-    ) external onlyOwner {
-        vrfCoordinator = _vrfCoordinator;
-        keyHash = _keyHash;
-        subscriptionId = _subscriptionId;
-        
-        emit VRFConfigUpdated(_vrfCoordinator, _keyHash, _subscriptionId);
-    }
+
     
     /**
      * @dev Emergency function to call emergency withdraw on deployed contracts

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
-import { useAuth } from '@campnetwork/origin/react'
-import { Upload, FileText, Image as ImageIcon, Music, Video, Code, Palette, DollarSign, Clock, Percent, CheckCircle, ArrowLeft, ArrowRight, Sparkles, Star, TrendingUp } from 'lucide-react'
+import { useAuth, useAuthState } from '@campnetwork/origin/react'
+import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
+import { Upload, FileText, Image as ImageIcon, Music, Video, Code, Palette, DollarSign, Clock, Percent, CheckCircle, ArrowLeft, ArrowRight, Sparkles, Star, TrendingUp, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const categories = [
@@ -20,7 +21,7 @@ interface LicenseTerms {
 }
 
 interface IPMetadata {
-  title: string
+  name: string
   description: string
   category: string
   tags: string[]
@@ -29,11 +30,22 @@ interface IPMetadata {
 }
 
 export default function CreateIP() {
-  const { origin, jwt } = useAuth()
+  const { origin, jwt, viem } = useAuth()
+  const { authenticated, loading: authLoading } = useAuthState();
+  const {
+    mintIPWithOrigin,
+    loading,
+    error: hookError,
+    success: hookSuccess,
+    isConnected,
+    clearError,
+    clearSuccess 
+  } = useCampfireIntegration()
+  
   const [step, setStep] = useState<'upload' | 'metadata' | 'license' | 'mint'>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [metadata, setMetadata] = useState<IPMetadata>({
-    title: '',
+    name: '',
     description: '',
     category: '',
     tags: [],
@@ -47,16 +59,22 @@ export default function CreateIP() {
     paymentToken: '0x0000000000000000000000000000000000000000', // ETH
   })
   const [tagInput, setTagInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Use hook states when available
+  const finalLoading = loading
+  const finalError = hookError || error
+  const finalSuccess = hookSuccess || success
+
+  console.log(viem)
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
       // Check file size (max 100MB)
-      if (selectedFile.size > 100 * 1024 * 1024) {
-        setError('File size must be less than 100MB')
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB')
         return
       }
       setFile(selectedFile)
@@ -68,8 +86,8 @@ export default function CreateIP() {
     e.preventDefault()
     const droppedFile = e.dataTransfer.files[0]
     if (droppedFile) {
-      if (droppedFile.size > 100 * 1024 * 1024) {
-        setError('File size must be less than 100MB')
+      if (droppedFile.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB')
         return
       }
       setFile(droppedFile)
@@ -99,44 +117,46 @@ export default function CreateIP() {
   }
 
   const handleMint = async () => {
-    if (!origin || !jwt || !file) {
+
+    if (!origin || !jwt || !file ) {
       setError('Missing required data for minting')
       return
     }
+    if (!authenticated || !origin || !jwt || !viem) {
+    setError('Please connect and authenticate your wallet.');
+    return;
+  }
 
-    setIsLoading(true)
+    if (!isConnected) {
+      setError('Please connect your wallet to mint')
+      return
+    }
+
+    // Clear previous messages
     setError('')
+    setSuccess('')
+    clearError()
+    clearSuccess()
 
     try {
-      const licenseTerms = {
-        price: BigInt(parseFloat(license.price) * 1e18), // Convert to wei
-        duration: parseInt(license.duration) || 0,
-        royaltyBps: parseInt(license.royalty) * 100, // Convert to basis points
-        paymentToken: license.paymentToken as `0x${string}`,
-      }
-
-      const parentId = metadata.isDerivative && metadata.parentId 
-        ? BigInt(metadata.parentId) 
-        : undefined
-
-      const tokenId = await origin.mintFile(
+      const tokenId = await mintIPWithOrigin(
         file,
         {
           ...metadata,
           mimeType: file.type,
           size: file.size,
         },
-        licenseTerms,
-        parentId
+        license,
+        metadata.isDerivative && metadata.parentId ? metadata.parentId : undefined
       )
 
-      setSuccess(`Successfully minted IP NFT with ID: ${tokenId}`)
-      setStep('mint')
+      if (tokenId) {
+        setSuccess(`Successfully minted IP NFT with ID: ${tokenId}`)
+        setStep('mint')
+      }
     } catch (err) {
       console.error('Minting error:', err)
       setError(err instanceof Error ? err.message : 'Failed to mint IP NFT')
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -291,8 +311,8 @@ export default function CreateIP() {
                 </label>
                 <input
                   type="text"
-                  value={metadata.title}
-                  onChange={(e) => setMetadata(prev => ({ ...prev, title: e.target.value }))}
+                  value={metadata.name}
+                  onChange={(e) => setMetadata(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-6 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent glass-effect transition-all duration-300 text-lg"
                   placeholder="Enter a captivating title for your IP"
                 />
@@ -447,7 +467,7 @@ export default function CreateIP() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setStep('license')}
-                disabled={!metadata.title || !metadata.description || !metadata.category}
+                disabled={!metadata.name || !metadata.description || !metadata.category}
                 className="px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-medium flex items-center"
               >
                 Next: Set License
@@ -567,10 +587,10 @@ export default function CreateIP() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleMint}
-                disabled={isLoading}
+                disabled={finalLoading || !isConnected}
                 className="px-8 py-4 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed font-medium flex items-center"
               >
-                {isLoading ? (
+                {finalLoading ? (
                   <>
                     <motion.div
                       animate={{ rotate: 360 }}
@@ -578,6 +598,11 @@ export default function CreateIP() {
                       className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
                     />
                     Minting...
+                  </>
+                ) : !isConnected ? (
+                  <>
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    Connect Wallet
                   </>
                 ) : (
                   <>
@@ -618,14 +643,14 @@ export default function CreateIP() {
               </p>
             </motion.div>
             
-            {success && (
+            {(finalSuccess || success) && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
                 className="glass-effect border border-green-200 rounded-2xl p-6 max-w-2xl mx-auto"
               >
-                <p className="text-green-800 font-medium">{success}</p>
+                <p className="text-green-800 font-medium">{finalSuccess || success}</p>
               </motion.div>
             )}
             
@@ -642,7 +667,7 @@ export default function CreateIP() {
                   setStep('upload')
                   setFile(null)
                   setMetadata({
-                    title: '',
+                    name: '',
                     description: '',
                     category: '',
                     tags: [],
@@ -723,14 +748,40 @@ export default function CreateIP() {
 
         {/* Error Display */}
         <AnimatePresence>
-          {error && (
+          {(finalError || finalSuccess) && (
             <motion.div 
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className="mb-8 bg-red-50 border-2 border-red-200 rounded-2xl p-6"
+              className={`mb-8 rounded-2xl p-6 ${
+                finalError 
+                  ? 'bg-red-50 border-2 border-red-200' 
+                  : 'bg-green-50 border-2 border-green-200'
+              }`}
             >
-              <p className="text-red-800 font-medium">{error}</p>
+              <div className="flex items-center">
+                {finalError ? (
+                  <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
+                ) : (
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
+                )}
+                <p className={`font-medium ${finalError ? 'text-red-800' : 'text-green-800'}`}>
+                  {finalError || finalSuccess}
+                </p>
+                {(finalError || finalSuccess) && (
+                  <button
+                    onClick={() => {
+                      setError('')
+                      setSuccess('')
+                      clearError()
+                      clearSuccess()
+                    }}
+                    className="ml-auto text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

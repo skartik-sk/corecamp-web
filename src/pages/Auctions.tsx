@@ -185,7 +185,7 @@ export default function Auctions() {
   };
 
   return (
-    <div className="min-h-screen bg-camp-light dark:bg-camp-dark py-12">
+    <div className="min-h-screen bg-camp-light py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div 
@@ -198,11 +198,11 @@ export default function Auctions() {
               <Gavel className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-camp-dark dark:text-white mb-2 flex items-center">
+              <h1 className="text-4xl font-bold text-camp-dark mb-2 flex items-center">
                 IP Auctions
                 <Sparkles className="w-8 h-8 ml-3 text-camp-orange" />
               </h1>
-              <p className="text-xl text-cool-1 dark:text-cool-2">
+              <p className="text-xl text-cool-1">
                 Bid on exclusive intellectual property assets in real-time auctions.
               </p>
             </div>
@@ -214,7 +214,7 @@ export default function Auctions() {
               <Trophy className="w-4 h-4 mr-1" />
               <span>{auctions.length} Active Auctions</span>
             </div>
-            <div className="flex items-center text-cool-1 dark:text-cool-2">
+            <div className="flex items-center text-cool-1">
               <Users className="w-4 h-4 mr-1" />
               <span>{auctions.reduce((sum, a) => sum + a.bidCount, 0)} Total Bids</span>
             </div>
@@ -244,7 +244,7 @@ export default function Auctions() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -5, scale: 1.02 }}
-                  className="bg-white dark:bg-camp-dark rounded-2xl overflow-hidden shadow-xl border border-camp-orange/20 dark:border-camp-orange/30 hover:shadow-2xl transition-all duration-300"
+                  className="bg-white rounded-2xl overflow-hidden shadow-xl border border-camp-orange/20 hover:shadow-2xl transition-all duration-300"
                 >
                   <div className="relative">
                     <img
@@ -267,24 +267,24 @@ export default function Auctions() {
                   
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-camp-dark dark:text-white">{auction.title}</h3>
+                      <h3 className="text-xl font-bold text-camp-dark">{auction.title}</h3>
                       <span className="text-camp-orange text-sm font-medium bg-camp-orange/10 px-2 py-1 rounded-lg">{auction.category}</span>
                     </div>
                     
-                    <p className="text-cool-1 dark:text-cool-2 mb-4">{auction.description}</p>
+                    <p className="text-cool-1 mb-4">{auction.description}</p>
                     
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
                         <p className="text-2xl font-bold text-camp-orange">{auction.currentBid} ETH</p>
-                        <p className="text-xs text-cool-1 dark:text-cool-2">Current Bid</p>
+                        <p className="text-xs text-cool-1">Current Bid</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xl font-bold text-camp-dark dark:text-white">{auction.bidCount}</p>
-                        <p className="text-xs text-cool-1 dark:text-cool-2">Bids</p>
+                        <p className="text-xl font-bold text-camp-dark">{auction.bidCount}</p>
+                        <p className="text-xs text-cool-1">Bids</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xl font-bold text-camp-dark dark:text-white">{auction.views}</p>
-                        <p className="text-xs text-cool-1 dark:text-cool-2">Views</p>
+                        <p className="text-xl font-bold text-camp-dark">{auction.views}</p>
+                        <p className="text-xs text-cool-1">Views</p>
                       </div>
                     </div>
 
@@ -297,7 +297,7 @@ export default function Auctions() {
                           placeholder={`Min: ${auction.minimumBid} ETH`}
                           value={bidAmounts[auction.id] || ''}
                           onChange={(e) => setBidAmounts(prev => ({ ...prev, [auction.id]: e.target.value }))}
-                          className="flex-1 px-4 py-2 border border-cool-2/30 dark:border-cool-1/50 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent bg-white dark:bg-camp-dark text-camp-dark dark:text-white"
+                          className="flex-1 px-4 py-2 border border-cool-2/30 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent bg-white text-camp-dark"
                         />
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -358,12 +358,12 @@ export default function Auctions() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
-              className="bg-white dark:bg-camp-dark rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-cool-1 dark:text-cool-2">{stat.label}</p>
-                  <p className="text-2xl font-bold text-camp-dark dark:text-white">
+                  <p className="text-sm font-medium text-cool-1">{stat.label}</p>
+                  <p className="text-2xl font-bold text-camp-dark">
                     {stat.value}
                   </p>
                 </div>
@@ -379,7 +379,7 @@ export default function Auctions() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-camp-dark rounded-2xl p-6 shadow-lg mb-8"
+          className="bg-white rounded-2xl p-6 shadow-lg mb-8"
         >
           <div className="flex flex-wrap gap-4">
             {[
@@ -395,7 +395,7 @@ export default function Auctions() {
                 className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 ${
                   filter === key
                     ? 'gradient-bg text-white shadow-lg'
-                    : 'text-camp-dark dark:text-white hover:bg-cool-3/20 dark:hover:bg-cool-1/20'
+                    : 'text-camp-dark hover:bg-cool-3/20'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -421,7 +421,7 @@ export default function Auctions() {
                 transition={{ delay: index * 0.1 }}
                 layout
                 whileHover={{ y: -8, scale: 1.02 }}
-                className="bg-white dark:bg-camp-dark rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
               >
                 <div className="relative">
                   <img
@@ -449,15 +449,15 @@ export default function Auctions() {
                 
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-camp-dark dark:text-white line-clamp-2">
+                    <h3 className="text-lg font-semibold text-camp-dark line-clamp-2">
                       {auction.title}
                     </h3>
-                    <span className="bg-cool-3/20 text-cool-1 dark:text-cool-2 text-xs px-2 py-1 rounded-full ml-2 whitespace-nowrap">
+                    <span className="bg-cool-3/20 text-cool-1 text-xs px-2 py-1 rounded-full ml-2 whitespace-nowrap">
                       {auction.category}
                     </span>
                   </div>
                   
-                  <p className="text-cool-1 dark:text-cool-2 text-sm mb-4 line-clamp-2">
+                  <p className="text-cool-1 text-sm mb-4 line-clamp-2">
                     {auction.description}
                   </p>
                   
@@ -467,15 +467,15 @@ export default function Auctions() {
                       <div className="text-xs text-cool-1 dark:text-cool-2">Current Bid</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-camp-dark dark:text-white">{auction.bidCount}</div>
-                      <div className="text-xs text-cool-1 dark:text-cool-2">Bids</div>
+                      <div className="text-lg font-bold text-camp-dark">{auction.bidCount}</div>
+                      <div className="text-xs text-cool-1">Bids</div>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center space-x-1 text-warm-1">
                         <Heart className="w-3 h-3" />
                         <span className="text-sm font-medium">{auction.likes}</span>
                       </div>
-                      <div className="text-xs text-cool-1 dark:text-cool-2">Likes</div>
+                      <div className="text-xs text-cool-1">Likes</div>
                     </div>
                   </div>
 
@@ -488,7 +488,7 @@ export default function Auctions() {
                         placeholder={`Min: ${auction.minimumBid} ETH`}
                         value={bidAmounts[auction.id] || ''}
                         onChange={(e) => setBidAmounts(prev => ({ ...prev, [auction.id]: e.target.value }))}
-                        className="w-full px-4 py-2 border border-cool-2/30 dark:border-cool-1/50 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent bg-white dark:bg-camp-dark text-camp-dark dark:text-white"
+                        className="w-full px-4 py-2 border border-cool-2/30 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-transparent bg-white text-camp-dark"
                       />
                       <motion.button
                         whileHover={{ scale: 1.02 }}
@@ -503,15 +503,15 @@ export default function Auctions() {
                     </div>
                   ) : (
                     <div className="text-center">
-                      <p className="text-cool-1 dark:text-cool-2 text-sm mb-3">Connect wallet to bid</p>
+                      <p className="text-cool-1 text-sm mb-3">Connect wallet to bid</p>
                       <button className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all duration-300 text-sm font-medium">
                         Connect Wallet
                       </button>
                     </div>
                   )}
                   
-                  <div className="mt-4 pt-4 border-t border-cool-3/20 dark:border-cool-1/20">
-                    <div className="flex items-center justify-between text-sm text-cool-1 dark:text-cool-2">
+                  <div className="mt-4 pt-4 border-t border-cool-3/20">
+                    <div className="flex items-center justify-between text-sm text-cool-1">
                       <div className="flex items-center">
                         <Eye className="w-4 h-4 mr-1" />
                         {auction.views} views

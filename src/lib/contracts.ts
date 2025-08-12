@@ -1,25 +1,36 @@
 import { parseEther, formatEther } from 'viem';
 import type { Address } from 'viem';
 
+// Import ABIs from utils folder
+import { MARKETPLACE_ABI } from '../utils/Marketplace';
+import { ESCROW_ABI } from '../utils/Escrow';
+import { AUCTION_ABI } from '../utils/Auction';
+import { FACTORY_ABI } from '../utils/Factory';
+// Import the lottery ABI from the lib folder (more comprehensive)
+import { LOTTERY_ABI } from './lottery-abi';
+
 // Contract addresses from the Camp Network
 export const CONTRACT_ADDRESSES = {
-  // IP NFT Contract
-  IP_NFT: '0x1234567890123456789012345678901234567890' as Address,
-  
-  // Marketplace Contract  
-  MARKETPLACE: '0x2345678901234567890123456789012345678901' as Address,
-  
-  // Dispute Module
-  DISPUTE_MODULE: '0x3456789012345678901234567890123456789012' as Address,
-  
-  // Auction Contract (custom)
-  AUCTION_CONTRACT: '0x4567890123456789012345678901234567890123' as Address,
-  
-  // Lottery Contract (custom)
-  LOTTERY_CONTRACT: '0x5678901234567890123456789012345678901234' as Address,
-  
-  // WCAMP Token
-  WCAMP_TOKEN: '0x6789012345678901234567890123456789012345' as Address,
+  // IP NFT Contract (Origin SDK)
+  IP_NFT: '0x5a3f832b47b948dA27aE788E96A0CD7BB0dCd1c1',
+  CORE_CAMP_FACTORY: '0x919C2083ae45969794B91CBa3025eEfc6D19cF78',
+
+  // Your custom deployed contracts
+  CORE_CAMP_MARKETPLACE: '0x4A790778B73b3028e7EdAf967a5a5EB92B3e395b',
+  CORE_CAMP_ESCROW: '0xD353754B3Acf187e90106877DC8e304Bd5da1474',
+  CORE_CAMP_AUCTION: '0xb076fb7eDccD48Aed7EBde145EA62072357f1CaE',
+  CORE_CAMP_LOTTERY: '0xfbF4e5DE27ccFDCD84d83093FCDAEFeE8004BCEB',
+
+  WCAMP_TOKEN: '0x1aE9c40eCd2DD6ad5858E5430A556d7aff28A44b' as Address,
+};
+
+// Export ABIs for easy import
+export const CONTRACT_ABIS = {
+  MARKETPLACE: MARKETPLACE_ABI,
+  ESCROW: ESCROW_ABI,
+  AUCTION: AUCTION_ABI,
+  LOTTERY: LOTTERY_ABI,
+  FACTORY: FACTORY_ABI,
 };
 
 export interface LicenseTerms {

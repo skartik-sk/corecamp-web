@@ -56,9 +56,7 @@ contract CoreCampIntegrationTest is Test {
         mockVRF = new MockVRFCoordinatorV2();
         nftContract = new CampfireIPNFT();
         factory = new CoreCampFactory(
-            address(mockVRF),
-            bytes32("test_key_hash"),
-            1
+
         );
         
         // Deploy marketplace contracts
@@ -336,13 +334,12 @@ contract CoreCampIntegrationTest is Test {
         assertEq(players[2], collector2);
         
         // Fulfill VRF request (simulate random number = 1, so collector1 wins)
-        uint256 requestId = 1; // First request in mock VRF
-        uint256 randomNumber = 1; // This will select index 1 % 3 = 1 (collector1)
+    // First request in mock VRF
+ // This will select index 1 % 3 = 1 (collector1)
         
         uint256 collector3BalanceBefore = collector3.balance;
         
-        mockVRF.fulfillRandomWordsWithNumber(requestId, randomNumber);
-        
+
         // Verify lottery completion
         (, ,,  isActive, , ,  winner, isDrawn) = lottery.getLottery(lotteryId);
         assertFalse(isActive);
@@ -427,8 +424,7 @@ contract CoreCampIntegrationTest is Test {
         lottery.buyTicket{value: 0.5 ether}(lotteryId); // Auto-draw triggers
         vm.stopPrank();
         
-        // Simulate artist1 wins (random number 0)
-        mockVRF.fulfillRandomWordsWithNumber(1, 0);
+
         
         // NFT returns to artist1!
         assertEq(nftContract.ownerOf(tokenId1), artist1);
@@ -460,7 +456,7 @@ contract CoreCampIntegrationTest is Test {
     // ==================== REVENUE DISTRIBUTION TESTS ====================
     
     function test_platformFeeCollection() public {
-        uint256 ownerBalanceBefore = owner.balance; 
+
         uint256 salePrice = 10 ether;
         uint256 expectedPlatformFee = (salePrice * marketplace.platformFeeBps()) / 10000;
         

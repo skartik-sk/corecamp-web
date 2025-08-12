@@ -47,9 +47,7 @@ contract CoreCampFactoryTest is Test {
         
         // Deploy factory
         factory = new CoreCampFactory(
-            address(mockVRF),
-            KEY_HASH,
-            SUBSCRIPTION_ID
+
         );
     }
     
@@ -86,9 +84,7 @@ contract CoreCampFactoryTest is Test {
         
         CoreCampLottery lottery = CoreCampLottery(deployment.lottery);
         assertEq(address(lottery.campfireNFT()), address(nftContract));
-        assertEq(address(lottery.vrfCoordinator()), address(mockVRF));
-        assertEq(lottery.keyHash(), KEY_HASH);
-        assertEq(lottery.subscriptionId(), SUBSCRIPTION_ID);
+
     }
     
     function test_deployMarketplace_RevertInvalidNFTAddress() public {
@@ -151,7 +147,7 @@ contract CoreCampFactoryTest is Test {
     }
     
     function test_getDeploymentByNFT() public {
-        uint256 deploymentId = factory.deployMarketplace(address(nftContract));
+       factory.deployMarketplace(address(nftContract));
         
         CoreCampFactory.MarketplaceContracts memory deployment = factory.getDeploymentByNFT(address(nftContract));
         
@@ -228,41 +224,7 @@ contract CoreCampFactoryTest is Test {
         assertFalse(factory.isValidDeployment(deploymentId));
     }
     
-    // ==================== VRF CONFIG TESTS ====================
     
-    function test_updateVRFConfig() public {
-        address newVRFCoordinator = makeAddr("newVRFCoordinator");
-        bytes32 newKeyHash = bytes32("new_key_hash");
-        uint64 newSubscriptionId = 2;
-        
-        vm.expectEmit(true, false, false, true);
-        emit VRFConfigUpdated(newVRFCoordinator, newKeyHash, newSubscriptionId);
-        
-        factory.updateVRFConfig(newVRFCoordinator, newKeyHash, newSubscriptionId);
-        
-        assertEq(factory.vrfCoordinator(), newVRFCoordinator);
-        assertEq(factory.keyHash(), newKeyHash);
-        assertEq(factory.subscriptionId(), newSubscriptionId);
-    }
-    
-    function test_newDeploymentUsesUpdatedVRFConfig() public {
-        // Update VRF config
-        address newVRFCoordinator = makeAddr("newVRFCoordinator");
-        bytes32 newKeyHash = bytes32("new_key_hash");
-        uint64 newSubscriptionId = 2;
-        
-        factory.updateVRFConfig(newVRFCoordinator, newKeyHash, newSubscriptionId);
-        
-        // Deploy marketplace with new config
-        uint256 deploymentId = factory.deployMarketplace(address(nftContract));
-        
-        CoreCampFactory.MarketplaceContracts memory deployment = factory.getDeployment(deploymentId);
-        CoreCampLottery lottery = CoreCampLottery(deployment.lottery);
-        
-        assertEq(address(lottery.vrfCoordinator()), newVRFCoordinator);
-        assertEq(lottery.keyHash(), newKeyHash);
-        assertEq(lottery.subscriptionId(), newSubscriptionId);
-    }
     
     // ==================== BATCH OPERATIONS TESTS ====================
     
@@ -340,9 +302,7 @@ contract CoreCampFactoryTest is Test {
         vm.expectRevert("Ownable: caller is not the owner");
         factory.setDeploymentStatus(1, false);
         
-        vm.expectRevert("Ownable: caller is not the owner");
-        factory.updateVRFConfig(address(0), bytes32(0), 0);
-        
+
         vm.expectRevert("Ownable: caller is not the owner");
         factory.updateAllPlatformFees(1, 500);
         
