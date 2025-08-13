@@ -6,21 +6,22 @@ import { MARKETPLACE_ABI } from '../utils/Marketplace';
 import { ESCROW_ABI } from '../utils/Escrow';
 import { AUCTION_ABI } from '../utils/Auction';
 import { FACTORY_ABI } from '../utils/Factory';
+import { LOTTERY_ABI } from '../utils/Lottery';
+
 // Import the lottery ABI from the lib folder (more comprehensive)
-import { LOTTERY_ABI } from './lottery-abi';
 
 // Contract addresses from the Camp Network
 export const CONTRACT_ADDRESSES = {
   // IP NFT Contract (Origin SDK)
 
   IP_NFT: '0xF90733b9eCDa3b49C250B2C3E3E42c96fC93324E',
-  CORE_CAMP_FACTORY: '0x4042c1A13756Baef61399c5f76004B29c958e32e',
+  CORE_CAMP_FACTORY: '0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01',
 
   // Your custom deployed contracts
-  CORE_CAMP_MARKETPLACE: '0xB26E8fc05fE740884546B29cEA1fCfb1495F7453',
-  CORE_CAMP_ESCROW: '0x5213A8a5a3b5A2c8bfb331D1edb9edA2013571F4',
-  CORE_CAMP_AUCTION: '0x69aDF2f8b53471120e3Dc815996EBC2cEc6791C3',
-  CORE_CAMP_LOTTERY: '0x8cdB69EE733B2064ec18179fA80B6dff93086652',
+  CORE_CAMP_MARKETPLACE: '0xf49cC8102fBEAF815e095ac6fCfa8d71AF2E8eB8',
+  CORE_CAMP_ESCROW: '0xd3Ff8cdA35be8aC2539b57579587C123DcA70673',
+  CORE_CAMP_AUCTION: '0x02280daEC6829D2595163513cF3d04Cc0028AaF9',
+  CORE_CAMP_LOTTERY: '0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8',
 
   WCAMP_TOKEN: '0x1aE9c40eCd2DD6ad5858E5430A556d7aff28A44b' as Address,
 };

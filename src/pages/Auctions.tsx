@@ -72,7 +72,7 @@ const mockAuctions: Auction[] = [
 
 export default function Auctions() {
   const { authenticated } = useAuthState();
-  const { useAllActiveAuctions, getDataByTokenId, placeBid, error, loading } = useCampfireIntegration();
+  const { useAllActiveAuctions, getDataByTokenId, placeBid, error, success, clearError, clearSuccess, loading } = useCampfireIntegration();
   
   // Get real auction data from contract
   const { data: contractAuctions, isLoading: auctionsLoading, error: auctionsError } = useAllActiveAuctions();
@@ -81,6 +81,8 @@ export default function Auctions() {
   const [filter, setFilter] = useState<'all' | 'ending-soon' | 'featured'>('all');
   const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
   const [countdown, setCountdown] = useState<Record<string, string>>({});
+  // Success notification state
+  // (success and error come from useCampfireIntegration)
 
   // Transform contract auction data to UI format
   useEffect(() => {
@@ -90,15 +92,20 @@ export default function Auctions() {
         
         const transformedAuctions = await Promise.all(
           contractAuctions.map(async (auction: any, index: number) => {
+            console.log(auction)
             let nftData = null;
+            let res
             try {
               // Get NFT metadata from Origin SDK
               if (auction.tokenId) {
-                nftData = await getDataByTokenId(auction.tokenId.toString());
+
+                 res = await getDataByTokenId(auction.tokenId.toString(), auction.seller);
+               nftData = res?.metadata || {}
               }
             } catch (err) {
               console.error('Error fetching NFT data for token:', auction.tokenId, err);
-            }
+            } 
+           
 
             return {
               id: auction.tokenId?.toString() || index.toString(),
@@ -132,7 +139,7 @@ export default function Auctions() {
     if (!auctionsLoading) {
       transformContractData();
     }
-  }, [contractAuctions, auctionsLoading, auctionsError, getDataByTokenId]);
+  }, [contractAuctions, auctionsLoading, auctionsError]);
 
   useEffect(() => {
     const updateCountdowns = () => {
@@ -194,8 +201,9 @@ export default function Auctions() {
 
     try {
       if (auction.tokenId) {
-        await placeBid(BigInt(auction.tokenId), amount);
-        alert('Bid placed successfully!');
+       const res =  await placeBid(BigInt(auction.tokenId), amount);
+       
+
         // The UI will update automatically when the contract data refreshes
       }
     } catch (err) {
@@ -209,6 +217,8 @@ export default function Auctions() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-camp-light/30 via-white to-cool-3/20 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success/Error Notification */}
+        
         {/* Header */}
         <motion.div 
           className="mb-12"
@@ -276,7 +286,7 @@ export default function Auctions() {
               {[
                 { key: 'all', label: 'All Auctions', count: auctions.length },
                 { key: 'featured', label: 'Featured', count: featuredAuctions.length },
-                { key: 'ending-soon', label: 'Ending Soon', count: auctions.filter(a => a.endTime.getTime() - Date.now() < 24 * 60 * 60 * 1000).length }
+                { key: 'ending-soon', label: 'Ending Soon', count: auctions.filter(a => a.endTime.getTime() - Date.now() < 24 * 60 * 60 * 1000).length },
               ].map(({ key, label, count }) => (
                 <button
                   key={key}
@@ -326,6 +336,40 @@ export default function Auctions() {
         )}
 
         {/* Auctions Grid */}
+        <AnimatePresence>
+          {(error || success) && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`mb-4 p-4 rounded-xl border-2 ${
+                error 
+                  ? 'bg-red-50 border-red-200 text-red-800' 
+                  : 'bg-green-50 border-green-200 text-green-800'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {error ? (
+                    <Target className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Trophy className="w-4 h-4 mr-2" />
+                  )}
+                  <span className="text-sm font-medium">{error || success}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    clearError();
+                    clearSuccess();
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <Timer className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {!auctionsLoading && (
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -345,6 +389,10 @@ export default function Auctions() {
                   }
                   onPlaceBid={(amount) => handlePlaceBid(auction.id, amount)}
                   index={index}
+                  error={error ?? undefined}
+                  success={success ?? undefined}
+                  clearError={clearError}
+                  clearSuccess={clearSuccess}
                 />
               ))}
             </AnimatePresence>
@@ -376,9 +424,13 @@ interface AuctionCardProps {
   onBidAmountChange: (amount: string) => void;
   onPlaceBid: (amount: string) => void;
   index: number;
+  error?: string;
+  success?: string;
+  clearError?: () => void;
+  clearSuccess?: () => void;
 }
 
-function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlaceBid, index }: AuctionCardProps) {
+function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlaceBid, index, error,success,clearError,clearSuccess }: AuctionCardProps) {
   const { authenticated } = useAuthState();
   const isEndingSoon = auction.endTime.getTime() - Date.now() < 24 * 60 * 60 * 1000;
   const hasEnded = countdown === 'Ended';
@@ -471,29 +523,35 @@ function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlace
         </div>
 
         {!hasEnded && (
-          <div className="space-y-3">
+            <div className="space-y-3">
             <input
               type="number"
-              placeholder={`Min: ${auction.minimumBid} ETH`}
+              // Minimum bid is currentBid + 5%
+              placeholder={`Min: ${(auction.currentBid * 1.05).toFixed(3)} ETH`}
               value={bidAmount}
               onChange={(e) => onBidAmountChange(e.target.value)}
               className="w-full px-4 py-3 border border-white/20 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange bg-white/50 backdrop-blur-sm"
               step="0.001"
-              min={auction.minimumBid}
+              min={auction.currentBid * 1.05}
             />
             
             <button
               onClick={() => onPlaceBid(bidAmount)}
-              disabled={!authenticated || !bidAmount || parseFloat(bidAmount) <= auction.currentBid}
+              disabled={
+              !authenticated ||
+              !bidAmount ||
+              parseFloat(bidAmount) < auction.currentBid * 1.05
+              }
               className="w-full px-6 py-3 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {!authenticated ? 'Connect Wallet' : 'Place Bid'}
             </button>
-          </div>
+            </div>
         )}
 
         {hasEnded && auction.highestBidder && (
-          <div className="p-3 bg-green-100 rounded-xl text-center">
+          <>
+          <div className="p-3 bg-green-100 rounded-xl text-center my-2">
             <div className="flex items-center justify-center space-x-2 text-green-600">
               <Trophy className="w-5 h-5" />
               <span className="font-medium">Auction Ended</span>
@@ -501,9 +559,49 @@ function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlace
             <p className="text-sm text-green-600 mt-1">
               Won by {formatAddress(auction.highestBidder)}
             </p>
+
           </div>
+         {auction.isActive &&
+         (
+
+           <div className="space-y-3">
+                  <div className="text-center">
+                    <DrawWinnerButton lotteryId={auction.id} authenticated={authenticated} />
+                  </div>
+                </div>
+              
+            )}
+          </>
         )}
       </div>
     </motion.div>
+  );
+}
+
+
+
+// DrawWinnerButton component
+
+function DrawWinnerButton({ lotteryId, authenticated }: { lotteryId: string, authenticated: boolean }) {
+  const { endAuction, loading } = useCampfireIntegration();
+  const [pending, setPending] = useState(false);
+
+  const handleDraw = async () => {
+    setPending(true);
+    try {
+      await endAuction(BigInt(lotteryId));
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleDraw}
+      disabled={!authenticated || loading || pending}
+      className="w-full px-6 py-3 bg-camp-orange text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {!authenticated ? 'Connect Wallet' : (pending || loading ? 'Drawing Winner...' : 'Distribute Winnings')}
+    </button>
   );
 }

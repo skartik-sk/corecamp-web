@@ -25,19 +25,13 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         bool isDrawn;
     }
     
-    // Counter for lottery IDs
-    uint256 private _nextLotteryId = 1;
-    
-    // Maps lottery ID to lottery details
+    // Maps token ID to lottery details (consistent with auction/escrow)
     mapping(uint256 => Lottery) public lotteries;
     
-    // Array to track all lottery IDs
-    uint256[] public lotteryIds;
+    // Array to track all lottery token IDs
+    uint256[] public lotteryTokenIds;
     
-    // Maps lottery ID to NFT token ID
-    mapping(uint256 => uint256) public lotteryToTokenId;
-    
-    // Maps token ID to lottery ID (one lottery per token)
+    // Maps token ID to lottery token ID (now same - can be removed)
     mapping(uint256 => uint256) public tokenToLotteryId;
     
     
@@ -87,12 +81,11 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         require(duration <= MAX_LOTTERY_DURATION, "Lottery duration too long");
         require(campfireNFT.ownerOf(tokenId) == msg.sender, "You are not the owner");
         require(campfireNFT.getApproved(tokenId) == address(this), "Lottery not approved");
-        require(tokenToLotteryId[tokenId] == 0, "Token already in lottery");
+        require(!lotteries[tokenId].isActive, "Token already in lottery");
         
-        uint256 lotteryId = _nextLotteryId++;
         uint256 endTime = block.timestamp + duration;
         
-        lotteries[lotteryId] = Lottery({
+        lotteries[tokenId] = Lottery({
             tokenId: tokenId,
             owner: msg.sender,
             ticketPrice: ticketPrice,
@@ -105,23 +98,23 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
             isDrawn: false
         });
         
-        lotteryToTokenId[lotteryId] = tokenId;
-        tokenToLotteryId[tokenId] = lotteryId;
+        // Add to lottery token IDs array
+        lotteryTokenIds.push(tokenId);
         
-        // Add to lottery IDs array
-        lotteryIds.push(lotteryId);
+        emit LotteryCreated(tokenId, tokenId, msg.sender, ticketPrice, maxTickets, endTime);
         
-        emit LotteryCreated(lotteryId, tokenId, msg.sender, ticketPrice, maxTickets, endTime);
-        
-        return lotteryId;
+        return tokenId; // Return tokenId instead of separate lotteryId
     }
     
     /**
      * @dev Buy a ticket for a lottery
-     * @param lotteryId The lottery ID to buy ticket for
+     * @param tokenId The token ID of the lottery to buy ticket for
      */
-    function buyTicket(uint256 lotteryId) external payable nonReentrant {
-        Lottery storage lottery = lotteries[lotteryId];
+    function buyTicket(uint256 tokenId) external payable nonReentrant {
+        Lottery storage lottery = lotteries[tokenId];
+        
+        // Better error messages for debugging
+        require(lottery.owner != address(0), "Lottery does not exist");
         require(lottery.isActive, "Lottery is not active");
         require(block.timestamp < lottery.endTime, "Lottery has ended");
         require(lottery.players.length < lottery.maxTickets, "Lottery is sold out");
@@ -135,20 +128,20 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
 
         lottery.players.push(msg.sender);
 
-        emit TicketPurchased(lotteryId, msg.sender, lottery.players.length);
+        emit TicketPurchased(tokenId, msg.sender, lottery.players.length);
 
         // Auto-draw if all tickets sold
         if (lottery.players.length == lottery.maxTickets) {
-            _drawWinner(lotteryId);
+            _drawWinner(tokenId);
         }
     }
     
     /**
      * @dev Draw the lottery winner (can be called after end time or when sold out)
-     * @param lotteryId The lottery ID to draw
+     * @param tokenId The token ID of the lottery to draw
      */
-    function drawLottery(uint256 lotteryId) external nonReentrant {
-        Lottery storage lottery = lotteries[lotteryId];
+    function drawLottery(uint256 tokenId) external nonReentrant {
+        Lottery storage lottery = lotteries[tokenId];
         require(lottery.isActive, "Lottery is not active");
         require(!lottery.isDrawn, "Lottery already drawn");
         require(lottery.players.length > 0, "No tickets sold");
@@ -156,32 +149,30 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
             block.timestamp >= lottery.endTime || lottery.players.length == lottery.maxTickets,
             "Cannot draw yet"
         );
-        _drawWinner(lotteryId);
+        _drawWinner(tokenId);
     }
     
     /**
      * @dev Cancel a lottery (only if no tickets sold)
-     * @param lotteryId The lottery ID to cancel
+     * @param tokenId The token ID of the lottery to cancel
      */
-    function cancelLottery(uint256 lotteryId) external nonReentrant {
-        Lottery storage lottery = lotteries[lotteryId];
+    function cancelLottery(uint256 tokenId) external nonReentrant {
+        Lottery storage lottery = lotteries[tokenId];
         require(lottery.isActive, "Lottery is not active");
         require(lottery.owner == msg.sender, "You are not the owner");
         require(lottery.players.length == 0, "Cannot cancel lottery with tickets sold");
         
         lottery.isActive = false;
-        uint256 tokenId = lotteryToTokenId[lotteryId];
-        tokenToLotteryId[tokenId] = 0;
         
-        emit LotteryCancelled(lotteryId, msg.sender);
+        emit LotteryCancelled(tokenId, msg.sender);
     }
     
 
     /**
      * @dev Internal function to draw winner using block-based pseudo-randomness
      */
-    function _drawWinner(uint256 lotteryId) internal {
-        Lottery storage lottery = lotteries[lotteryId];
+    function _drawWinner(uint256 tokenId) internal {
+        Lottery storage lottery = lotteries[tokenId];
         require(lottery.isActive, "Lottery is not active");
         require(!lottery.isDrawn, "Lottery already drawn");
         require(lottery.players.length > 0, "No players");
@@ -203,10 +194,10 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         lottery.isDrawn = true;
         lottery.isActive = false;
 
-        emit LotteryDrawCompleted(lotteryId, winner, randomWord);
+        emit LotteryDrawCompleted(tokenId, winner, randomWord);
 
         // Distribute prizes
-        _distributePrizes(lotteryId);
+        _distributePrizes(tokenId);
     }
     
 
@@ -214,9 +205,8 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     /**
      * @dev Internal function to distribute prizes
      */
-    function _distributePrizes(uint256 lotteryId) internal {
-        Lottery storage lottery = lotteries[lotteryId];
-        uint256 tokenId = lotteryToTokenId[lotteryId];
+    function _distributePrizes(uint256 tokenId) internal {
+        Lottery storage lottery = lotteries[tokenId];
         
         // Verify NFT is still owned and approved
         require(campfireNFT.ownerOf(tokenId) == lottery.owner, "Owner no longer has NFT");
@@ -238,17 +228,14 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
             payable(owner()).transfer(platformFee);
         }
         
-        // Clear token mapping
-        tokenToLotteryId[tokenId] = 0;
-        
-        emit PrizeDistributed(lotteryId, lottery.winner, lottery.owner, ownerAmount);
+        emit PrizeDistributed(tokenId, lottery.winner, lottery.owner, ownerAmount);
     }
     
     /**
-     * @dev Get all lottery IDs
+     * @dev Get all lottery token IDs
      */
-    function getAllLotteryIds() external view returns (uint256[] memory) {
-        return lotteryIds;
+    function getAllLotteryTokenIds() external view returns (uint256[] memory) {
+        return lotteryTokenIds;
     }
     
     /**
@@ -258,8 +245,8 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         uint256 count = 0;
         
         // First, count active lotteries
-        for (uint256 i = 0; i < lotteryIds.length; i++) {
-            if (lotteries[lotteryIds[i]].isActive) {
+        for (uint256 i = 0; i < lotteryTokenIds.length; i++) {
+            if (lotteries[lotteryTokenIds[i]].isActive) {
                 count++;
             }
         }
@@ -268,10 +255,10 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         Lottery[] memory activeLotteries = new Lottery[](count);
         uint256 currentIndex = 0;
         
-        for (uint256 i = 0; i < lotteryIds.length; i++) {
-            uint256 lotteryId = lotteryIds[i];
-            if (lotteries[lotteryId].isActive) {
-                activeLotteries[currentIndex] = lotteries[lotteryId];
+        for (uint256 i = 0; i < lotteryTokenIds.length; i++) {
+            uint256 tokenId = lotteryTokenIds[i];
+            if (lotteries[tokenId].isActive) {
+                activeLotteries[currentIndex] = lotteries[tokenId];
                 currentIndex++;
             }
         }
@@ -281,10 +268,10 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     
     /**
      * @dev Get lottery details
-     * @param lotteryId The lottery ID to get details for
+     * @param tokenId The token ID to get lottery for
      */
-    function getLottery(uint256 lotteryId) external view returns (
-        uint256 tokenId,
+    function getLottery(uint256 tokenId) external view returns (
+        uint256 lotteryTokenId,
         address owner,
         uint256 ticketPrice,
         uint256 maxTickets,
@@ -294,7 +281,7 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         address winner,
         bool isDrawn
     ) {
-        Lottery memory lottery = lotteries[lotteryId];
+        Lottery memory lottery = lotteries[tokenId];
         return (
             lottery.tokenId,
             lottery.owner,
@@ -310,18 +297,62 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     
     /**
      * @dev Get all players for a lottery
-     * @param lotteryId The lottery ID
+     * @param tokenId The token ID of the lottery
      */
-    function getPlayers(uint256 lotteryId) external view returns (address[] memory) {
-        return lotteries[lotteryId].players;
+    function getPlayers(uint256 tokenId) external view returns (address[] memory) {
+        return lotteries[tokenId].players;
+    }
+    
+    /**
+     * @dev Check if lottery exists
+     * @param tokenId The token ID to check
+     */
+    function lotteryExists(uint256 tokenId) external view returns (bool) {
+        return lotteries[tokenId].owner != address(0);
+    }
+    
+    /**
+     * @dev Get lottery status for debugging
+     * @param tokenId The token ID to check
+     */
+    function getLotteryStatus(uint256 tokenId) external view returns (
+        bool exists,
+        bool isActive,
+        bool hasEnded,
+        bool isSoldOut,
+        uint256 currentTime,
+        uint256 endTime,
+        uint256 ticketsSold,
+        uint256 maxTickets,
+        address owner
+    ) {
+        Lottery memory lottery = lotteries[tokenId];
+        return (
+            lottery.owner != address(0), // exists
+            lottery.isActive,
+            block.timestamp >= lottery.endTime, // hasEnded
+            lottery.players.length >= lottery.maxTickets, // isSoldOut
+            block.timestamp,
+            lottery.endTime,
+            lottery.players.length,
+            lottery.maxTickets,
+            lottery.owner
+        );
+    }
+    
+    /**
+     * @dev Get current lottery counter (for debugging) - now returns total count
+     */
+    function getCurrentLotteryId() external view returns (uint256) {
+        return lotteryTokenIds.length; // Total number of lotteries created
     }
     
     /**
      * @dev Check if lottery can be drawn
-     * @param lotteryId The lottery ID to check
+     * @param tokenId The token ID to check
      */
-    function canDrawLottery(uint256 lotteryId) external view returns (bool) {
-        Lottery memory lottery = lotteries[lotteryId];
+    function canDrawLottery(uint256 tokenId) external view returns (bool) {
+        Lottery memory lottery = lotteries[tokenId];
         return lottery.isActive && 
                !lottery.isDrawn && 
                lottery.players.length > 0 &&

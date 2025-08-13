@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuthState } from '@campnetwork/origin/react'
+import { useAuth, useAuthState } from '@campnetwork/origin/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Trophy, 
@@ -10,13 +10,18 @@ import {
   Sparkles,
   Crown,
   Clock,
-  Target
+  Target,
+  X,
+  Eye,
+  Heart,
+  Gavel
 } from 'lucide-react'
-import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 import { formatAddress } from '@/lib/utils'
+import { formatEther } from 'viem'
 
 interface LotteryRound {
   id: string
+  image: string
   name: string
   description: string
   prizePool: string
@@ -24,17 +29,20 @@ interface LotteryRound {
   totalTickets: number
   ticketsSold: number
   endTime: Date
-  status: 'active' | 'ended' | 'upcoming'
+  isActive: boolean,
   winner?: string
   participants: number
   featured?: boolean
   creator?: string
+  creatorAddress?: string
   winnerAnnounced?: boolean
+  userAddress?: string
 }
 
 const mockLotteries: LotteryRound[] = [
   {
     id: '1',
+    image: 'https://example.com/weekly-ip-jackpot.jpg',
     name: 'Weekly IP Jackpot',
     description: 'Win exclusive rights to premium IP assets worth over 10 ETH!',
     prizePool: '15.5 ETH',
@@ -42,12 +50,13 @@ const mockLotteries: LotteryRound[] = [
     totalTickets: 1000,
     ticketsSold: 742,
     endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
-    status: 'active',
+    isActive: true,
     participants: 234,
     featured: true,
   },
   {
     id: '2',
+    image: 'https://example.com/ai-art-collection.jpg',
     name: 'AI Art Collection Raffle',
     description: 'Rare AI-generated artwork collection with commercial licensing.',
     prizePool: '8.2 ETH',
@@ -55,7 +64,7 @@ const mockLotteries: LotteryRound[] = [
     totalTickets: 500,
     ticketsSold: 345,
     endTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
-    status: 'active',
+    isActive: true,
     participants: 156,
     featured: true,
   }
@@ -64,70 +73,99 @@ const mockLotteries: LotteryRound[] = [
 export default function Lottery() {
   const { authenticated } = useAuthState();
   const { 
-    useNextLotteryId, 
-    buyLotteryTickets, 
+    useAllActiveLotteries,
+    getDataByTokenId,
+    buyLotteryTicket,
     error, 
+    success,
+    clearError,
+    clearSuccess,
     loading 
   } = useCampfireIntegration();
-  
-  // Get next lottery ID to know how many lotteries exist
-  const { data: nextLotteryId, isLoading: loadingNext } = useNextLotteryId();
+  const auth = useAuth();
+
+  // Get real lottery data from contract
+  const { data: contractLotteries, isLoading: lotteriesLoading, error: lotteriesError } = useAllActiveLotteries();
   
   const [lotteries, setLotteries] = useState<LotteryRound[]>(mockLotteries);
   const [filter, setFilter] = useState<'all' | 'active' | 'ended' | 'upcoming'>('all');
   const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
   const [countdown, setCountdown] = useState<Record<string, string>>({});
 
-  // Fetch all lottery data when nextLotteryId is available
+  // Auto-clear messages after 5 seconds
   useEffect(() => {
-    const fetchAllLotteries = async () => {
-      if (!nextLotteryId || nextLotteryId === BigInt(0)) return;
+    if (success || error) {
+      const timer = setTimeout(() => {
+        if (success) clearSuccess();
+        if (error) clearError();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error, clearSuccess, clearError]);
 
-      const contractLotteries = [];
-      
-      // Generate sample lottery data based on contract structure
-      for (let i = 0; i < Number(nextLotteryId); i++) {
-        try {
-          const lotteryData: LotteryRound = {
-            id: i.toString(),
-            name: `Smart Lottery #${i + 1}`,
-            description: 'Blockchain lottery with transparent prize distribution and smart contract security',
-            prizePool: `${(Math.random() * 10 + 1).toFixed(1)} ETH`,
-            ticketPrice: `${(Math.random() * 0.01 + 0.005).toFixed(3)} ETH`,
-            totalTickets: Math.floor(Math.random() * 1000) + 100,
-            ticketsSold: Math.floor(Math.random() * 500) + 50,
-            endTime: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000), // Random within 7 days
-            status: Math.random() > 0.3 ? 'active' : 'ended',
-            participants: Math.floor(Math.random() * 100) + 10,
-            featured: Math.random() > 0.8,
-            creator: `0x${Math.random().toString(16).substring(2, 42)}`,
-            winnerAnnounced: Math.random() > 0.5
-          };
-          
-          contractLotteries.push(lotteryData);
-        } catch (err) {
-          console.error(`Error fetching lottery ${i}:`, err);
-        }
-      }
+  // Transform contract lottery data to UI format
+  useEffect(() => {
+    const transformContractData = async () => {
+      if (contractLotteries && Array.isArray(contractLotteries) && contractLotteries.length > 0) {
+        // console.log('Contract lotteries:', contractLotteries);
+        
+        const transformedLotteries = await Promise.all(
+          contractLotteries.map(async (lottery: any, index: number) => {
+            let nftData = null;
+            let res;
+            try {
+              // Get NFT metadata from Origin SDK
+              if (lottery.tokenId) {
+                res = await getDataByTokenId(lottery.tokenId.toString(), lottery.owner);
+                nftData = res?.metadata || {};
+              }
+            } catch (err) {
+              console.error('Error fetching NFT data for token:', lottery.tokenId, err);
+            }
+            
 
-      if (contractLotteries.length > 0) {
-        setLotteries([...contractLotteries, ...mockLotteries]);
-        console.log('Loaded contract lotteries:', contractLotteries);
-      } else {
+            return {
+              id: lottery.tokenId?.toString() || index.toString(),
+              name: nftData?.name || `Smart Lottery #${lottery.id || index}`,
+              creatorAddress: lottery.owner,
+              description: nftData?.description || 'Blockchain lottery with transparent prize distribution and smart contract security',
+              image: nftData?.image || 'https://example.com/default-lottery-image.jpg',
+              prizePool: `${parseFloat(nftData.price || BigInt(0)) } CAMP`,
+              ticketPrice: `${parseFloat(formatEther(lottery.ticketPrice || BigInt(0))).toFixed(3)} ETH`,
+              totalTickets: Number(lottery.maxTickets || 0),
+              ticketsSold: Number(lottery.ticketsSold || 0),
+              endTime: new Date(Number(lottery.endTime || 0) * 1000),
+              status: lottery.isActive ? ('active' as const) : ('ended' as const),
+              isActive: lottery.isActive, // Add isActive property
+              participants: Math.floor(Math.random() * 100) + 10,
+              featured: Math.random() > 0.8,
+              creator: formatAddress(lottery.owner || '0x0000000000000000000000000000000000000000'),
+              winner: lottery.winner && lottery.winner !== '0x0000000000000000000000000000000000000000' ? lottery.winner : undefined,
+              winnerAnnounced: !lottery.active && lottery.winner && lottery.winner !== '0x0000000000000000000000000000000000000000',
+              tokenId: lottery.tokenId?.toString(),
+              lotteryId: lottery.id?.toString()
+            };
+          })
+        );
+
+        console.log("Transformed Lotteries:", transformedLotteries)
+        setLotteries(transformedLotteries.filter(lottery => lottery.isActive ===true).slice(0, 20)); // Limit to 20 active lotteries
+      } else if (lotteriesError) {
+        console.error('Lotteries error:', lotteriesError);
         console.log('Using mock lottery data');
       }
     };
 
-    if (!loadingNext) {
-      fetchAllLotteries();
+    if (!lotteriesLoading) {
+      transformContractData();
     }
-  }, [nextLotteryId, loadingNext]);
+  }, [contractLotteries, lotteriesLoading, lotteriesError]);
 
   useEffect(() => {
     const updateCountdowns = () => {
       const newCountdowns: Record<string, string> = {};
       lotteries.forEach(lottery => {
-        if (lottery.status === 'active') {
+        if (lottery.isActive === true) {
           const timeLeft = lottery.endTime.getTime() - Date.now();
           if (timeLeft > 0) {
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
@@ -155,10 +193,10 @@ export default function Lottery() {
 
   const filteredLotteries = lotteries.filter(lottery => {
     if (filter === 'all') return true;
-    return lottery.status === filter;
+    return lottery.isActive === (filter === 'active');
   });
-  
-  const featuredLotteries = lotteries.filter(l => l.featured && l.status === 'active');
+
+  const featuredLotteries = lotteries.filter(l => l.featured && l.isActive);
 
   const buyTickets = async (lotteryId: string, ticketCount: number) => {
     if (!authenticated || ticketCount <= 0) {
@@ -172,8 +210,8 @@ export default function Lottery() {
     const totalCost = (parseFloat(lottery.ticketPrice.split(' ')[0]) * ticketCount).toString();
 
     try {
-      await buyLotteryTickets(BigInt(lotteryId), ticketCount, totalCost);
-      alert(`Successfully bought ${ticketCount} tickets!`);
+      await buyLotteryTicket(BigInt(lotteryId), totalCost.toString());
+    
       // UI will update when contract data refreshes
     } catch (err) {
       console.error('Error buying tickets:', err);
@@ -206,7 +244,7 @@ export default function Lottery() {
               <div className="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center mx-auto mb-3">
                 <Dice6 className="w-6 h-6 text-white" />
               </div>
-              <div className="text-2xl font-bold text-camp-dark">{lotteries.filter(l => l.status === 'active').length}</div>
+              <div className="text-2xl font-bold text-camp-dark">{lotteries.filter(l => l.isActive === true).length}</div>
               <div className="text-cool-1">Active Lotteries</div>
             </div>
             <div className="glass-effect rounded-2xl p-6 text-center border border-white/20">
@@ -234,7 +272,7 @@ export default function Lottery() {
                 <Trophy className="w-6 h-6 text-white" />
               </div>
               <div className="text-2xl font-bold text-camp-dark">
-                {lotteries.filter(l => l.status === 'ended' && l.winner).length}
+                {lotteries.filter(l => !l.isActive && l.winner).length}
               </div>
               <div className="text-cool-1">Winners Drawn</div>
             </div>
@@ -252,9 +290,9 @@ export default function Lottery() {
             <div className="flex gap-3">
               {[
                 { key: 'all', label: 'All Lotteries', count: lotteries.length },
-                { key: 'active', label: 'Active', count: lotteries.filter(l => l.status === 'active').length },
-                { key: 'ended', label: 'Ended', count: lotteries.filter(l => l.status === 'ended').length },
-                { key: 'upcoming', label: 'Upcoming', count: lotteries.filter(l => l.status === 'upcoming').length }
+                { key: 'active', label: 'Active', count: lotteries.filter(l => l.isActive).length },
+                { key: 'ended', label: 'Ended', count: lotteries.filter(l => !l.isActive).length },
+
               ].map(({ key, label, count }) => (
                 <button
                   key={key}
@@ -273,7 +311,7 @@ export default function Lottery() {
         </motion.div>
 
         {/* Loading State */}
-        {(loadingNext || loading) && (
+        {(lotteriesLoading || loading) && (
           <motion.div 
             className="text-center py-24"
             initial={{ opacity: 0 }}
@@ -288,7 +326,7 @@ export default function Lottery() {
         )}
 
         {/* Error State */}
-        {error && !loadingNext && (
+        {error && !lotteriesLoading && (
           <motion.div 
             className="text-center py-24"
             initial={{ opacity: 0 }}
@@ -328,6 +366,7 @@ export default function Lottery() {
                   onBuyTickets={(count) => buyTickets(lottery.id, count)}
                   featured={true}
                   index={index}
+                  userAddress={auth?.walletAddress || ''}
                 />
               ))}
             </div>
@@ -335,7 +374,7 @@ export default function Lottery() {
         )}
 
         {/* All Lotteries */}
-        {!loadingNext && (
+        {!lotteriesLoading && (
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             initial={{ opacity: 0 }}
@@ -354,13 +393,15 @@ export default function Lottery() {
                   }
                   onBuyTickets={(count) => buyTickets(lottery.id, count)}
                   index={index}
+                  userAddress={auth?.walletAddress || ''}
+                  hasEnded={countdown === "Draw time!"}
                 />
               ))}
             </AnimatePresence>
           </motion.div>
         )}
 
-        {!loadingNext && filteredLotteries.length === 0 && (
+        {!lotteriesLoading && filteredLotteries.length === 0 && (
           <motion.div 
             className="text-center py-24"
             initial={{ opacity: 0 }}
@@ -373,6 +414,59 @@ export default function Lottery() {
             <p className="text-cool-1">Try adjusting your filters to discover exciting lotteries</p>
           </motion.div>
         )}
+        
+        {/* Success/Error Notifications */}
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.3 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.5 }}
+              className="fixed bottom-6 right-6 z-50"
+            >
+              <div className="bg-green-500/20 border border-green-500/30 backdrop-blur-lg rounded-xl p-4 flex items-center gap-3 min-w-[320px]">
+                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-green-400 font-medium">Success!</h4>
+                  <p className="text-green-300 text-sm">{success}</p>
+                </div>
+                <button
+                  onClick={clearSuccess}
+                  className="text-green-400 hover:text-green-300 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.3 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.5 }}
+              className="fixed bottom-6 right-6 z-50"
+            >
+              <div className="bg-red-500/20 border border-red-500/30 backdrop-blur-lg rounded-xl p-4 flex items-center gap-3 min-w-[320px]">
+                <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <X className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-red-400 font-medium">Error</h4>
+                  <p className="text-red-300 text-sm">{error}</p>
+                </div>
+                <button
+                  onClick={clearError}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -386,6 +480,8 @@ interface LotteryCardProps {
   onBuyTickets: (count: number) => void;
   featured?: boolean;
   index: number;
+  userAddress: string;
+  hasEnded : boolean;
 }
 
 function LotteryCard({ 
@@ -395,14 +491,16 @@ function LotteryCard({
   onTicketCountChange, 
   onBuyTickets, 
   featured, 
-  index 
+  index,
+  userAddress, 
+  hasEnded  = false
 }: LotteryCardProps) {
   const { authenticated } = useAuthState();
   const progressPercent = (lottery.ticketsSold / lottery.totalTickets) * 100;
 
   return (
     <motion.div
-      className={`glass-effect rounded-3xl overflow-hidden hover-lift border border-white/20 group ${
+      className={`glass-effect rounded-3xl  overflow-hidden hover-lift border border-white/20 group ${
         featured ? 'ring-2 ring-camp-orange/50' : ''
       }`}
       initial={{ opacity: 0, y: 20 }}
@@ -410,9 +508,18 @@ function LotteryCard({
       transition={{ delay: index * 0.1 }}
       whileHover={{ scale: 1.02 }}
     >
-      <div className="relative p-6">
-        {/* Header */}
+  <img
+          src={lottery.image}
+          alt={lottery.name}
+          className="w-full h-48 object-cover"
+        />
+        {/* Header */}<div className="relative p-6">
+      
+        
+        {/* Overlays */}
+       
         <div className="flex items-start justify-between mb-4">
+          
           <div>
             <h3 className="text-lg font-semibold text-camp-dark group-hover:text-camp-orange transition-colors">
               {lottery.name}
@@ -428,13 +535,13 @@ function LotteryCard({
               </div>
             )}
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              lottery.status === 'active' 
+              lottery.isActive
                 ? 'bg-green-100 text-green-600'
-                : lottery.status === 'ended'
+                : !lottery.isActive
                 ? 'bg-gray-100 text-gray-600'
                 : 'bg-blue-100 text-blue-600'
             }`}>
-              {lottery.status.toUpperCase()}
+              {lottery.isActive}
             </span>
           </div>
         </div>
@@ -473,7 +580,7 @@ function LotteryCard({
         </div>
 
         {/* Countdown */}
-        {lottery.status === 'active' && (
+        {lottery.isActive && (
           <div className="mb-4 p-3 bg-camp-orange/10 rounded-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-camp-orange">
@@ -488,7 +595,7 @@ function LotteryCard({
         )}
 
         {/* Winner Display */}
-        {lottery.status === 'ended' && lottery.winner && (
+        {lottery.isActive===false && lottery.winner && (
           <div className="mb-4 p-3 bg-green-100 rounded-xl">
             <div className="flex items-center space-x-2 text-green-600">
               <Crown className="w-5 h-5" />
@@ -499,9 +606,30 @@ function LotteryCard({
             </div>
           </div>
         )}
-
+      
+        
         {/* Buy Tickets */}
-        {lottery.status === 'active' && (
+{lottery.creatorAddress === userAddress && lottery.isActive  && hasEnded ? (
+  <>
+  <div className="p-3 bg-green-100 rounded-xl text-center my-2">
+              <div className="flex items-center justify-center space-x-2 text-green-600">
+                <Trophy className="w-5 h-5" />
+                <span className="font-medium">Lottery Ended</span>
+              </div>
+              <p className="text-sm text-green-600 mt-1">
+                Lottery has ended
+              </p>
+  
+            </div>
+                <div className="space-y-3">
+                  <div className="text-center">
+                    <DrawWinnerButton lotteryId={lottery.id} authenticated={authenticated} />
+                  </div>
+                </div>
+  </>
+              ) : (
+                <>
+        {lottery.isActive && (
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <button
@@ -520,7 +648,7 @@ function LotteryCard({
               <button
                 onClick={() => onTicketCountChange(ticketCount + 1)}
                 className="w-10 h-10 rounded-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors"
-              >
+                >
                 +
               </button>
             </div>
@@ -529,17 +657,46 @@ function LotteryCard({
               <div className="text-sm text-cool-1 mb-2">
                 Total Cost: {(parseFloat(lottery.ticketPrice.split(' ')[0]) * ticketCount).toFixed(3)} ETH
               </div>
-              <button
-                onClick={() => onBuyTickets(ticketCount)}
-                disabled={!authenticated}
-                className="w-full px-6 py-3 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {!authenticated ? 'Connect Wallet' : `Buy ${ticketCount} Ticket${ticketCount > 1 ? 's' : ''}`}
-              </button>
-            </div>
+         
+                <button
+                  onClick={() => onBuyTickets(ticketCount)}
+                  disabled={!authenticated}
+                  className="w-full px-6 py-3 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                  {!authenticated ? 'Connect Wallet' : `Buy ${ticketCount} Ticket${ticketCount > 1 ? 's' : ''}`}
+                </button>
           </div>
-        )}
-      </div>
+          </div>)}
+              </>
+            
+          )}
+          </div>
     </motion.div>
+  );
+}
+
+// DrawWinnerButton component
+import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
+function DrawWinnerButton({ lotteryId, authenticated }: { lotteryId: string, authenticated: boolean }) {
+  const { drawLotteryWinner, loading } = useCampfireIntegration();
+  const [pending, setPending] = useState(false);
+
+  const handleDraw = async () => {
+    setPending(true);
+    try {
+      await drawLotteryWinner(BigInt(lotteryId));
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleDraw}
+      disabled={!authenticated || loading || pending}
+      className="w-full px-6 py-3 bg-camp-orange text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {!authenticated ? 'Connect Wallet' : (pending || loading ? 'Drawing Winner...' : 'Draw Winner')}
+    </button>
   );
 }
