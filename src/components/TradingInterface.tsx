@@ -32,6 +32,7 @@ export default function TradingInterface({
   const {
     buyAccessWithOrigin,
     listNFTOnMarketplace,
+    buyNFTFromMarketplace,
     createAuction,
     createEscrowDeal,
     startLottery,
@@ -49,7 +50,7 @@ export default function TradingInterface({
   const [activeTab, setActiveTab] = useState<'buy' | 'auction' | 'escrow' | 'lottery'>('buy')
   const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({
-    price: currentPrice || '0.1',
+    price: currentPrice || '0.001',
     duration: '7', // days
     buyerAddress: '',
     ticketPrice: '0.01',
@@ -63,7 +64,7 @@ export default function TradingInterface({
 
   const handleBuyAccess = async () => {
     try {
-      await buyAccessWithOrigin(tokenId, 1)
+      await buyNFTFromMarketplace(tokenId, currentPrice)
       setShowModal(false)
     } catch (err) {
       console.error('Buy access error:', err)
@@ -292,7 +293,7 @@ export default function TradingInterface({
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fixed Price (ETH)
+                Fixed Price (CAMP)
               </label>
               <input
                 type="number"

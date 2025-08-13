@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '@campnetwork/origin/react'
+import { formatEther } from 'viem'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, 
@@ -9,14 +9,13 @@ import {
   Grid, 
   List, 
   Star, 
-  Clock, 
-  DollarSign,
   Eye,
   Heart,
   Zap,
   Shield
 } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
+import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 import clsx from 'clsx'
 
 const categories = ['All', 'AI/ML', 'Art', 'Music', 'Design', 'Code', 'Writing', 'Video', 'Other']
@@ -99,33 +98,80 @@ const itemVariants = {
 }
 
 export default function Marketplace() {
-  const { origin } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [sortBy, setSortBy] = useState('Most Recent')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [ipAssets, setIpAssets] = useState<any[]>(mockIPAssets)
+  const [ipAssets, setIpAssets] = useState<any[]>([])
   const [filteredIPs, setFilteredIPs] = useState<any[]>(mockIPAssets)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const { useAllMarketplaceListings,getDataByTokenId } = useCampfireIntegration()
+  
+  // Use the hook to get all marketplace listings
+  const { data: allListings, isLoading: marketplaceLoading, error: marketplaceError } = useAllMarketplaceListings()
 
   useEffect(() => {
-    async function fetchIPs() {
-      setIsLoading(true)
-      setError(null)
-      try {
-        if (!origin) return
-        // Try to fetch real assets, fallback to mock data
+    const fetchdata = async () => {
+      setIsLoading(marketplaceLoading)
+
+      if (marketplaceError) {
+        console.error('Marketplace error:', marketplaceError)
+        setError('Using demo data - marketplace not available')
         setIpAssets(mockIPAssets)
-      } catch (err) {
-        setError('Using demo data - Origin SDK not available')
+      } else if (allListings && Array.isArray(allListings)) {
+        console.log('All marketplace listings:', allListings)
+
+        // Transform contract listings to your expected format
+        const transformedListings = await Promise.all(
+          allListings.map(async (listing: any) => {
+            let res: any = {}
+            if (getDataByTokenId) {
+              try {
+                console.log(listing.tokenId, listing.seller)
+                res = await getDataByTokenId(
+                  typeof listing.tokenId === 'bigint'
+                  ? listing.tokenId.toString()
+                  : listing.tokenId,
+                  listing.seller
+                )
+                console.log(res)
+              } catch (err) {
+                console.error('Error fetching metadata for tokenId', listing.tokenId, err)
+              }
+            }
+            const extraData = res?.metadata || {}
+            console.log(extraData)
+            return {
+              id: listing.tokenId?.toString() || listing.tokenId,
+              tokenId: listing.tokenId?.toString() || listing.tokenId,
+              name: extraData?.name || `IP Asset #${listing.tokenId}`,
+              description: extraData?.description || 'Intellectual property asset available for licensing',
+              category: extraData?.category || 'AI/ML',
+              price: listing.price ? formatEther(listing.price) : '0',
+              currency: 'ETH',
+              creator: listing.seller || '0x0000000000000000000000000000000000000000',
+              image: extraData?.image || `https://picsum.photos/400/250?random=${listing.tokenId}`,
+              likes: Math.floor(Math.random() * 500),
+              views: Math.floor(Math.random() * 2000),
+              createdAt: new Date().toISOString(),
+              verified: Math.random() > 0.5,
+              featured: Math.random() > 0.7,
+              isActive: listing.isActive
+            }
+          })
+        )
+        // Only show active listings
+        const activeListings = transformedListings.filter((listing: any) => listing.isActive)
+        setIpAssets(activeListings)
+      } else {
+        // Use demo data when no contract data
         setIpAssets(mockIPAssets)
-      } finally {
-        setIsLoading(false)
       }
     }
-    fetchIPs()
-  }, [origin])
+    fetchdata()
+  }, [allListings, marketplaceLoading, marketplaceError])
 
   useEffect(() => {
     let filtered = ipAssets
@@ -392,7 +438,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
                   </div>
                 </div>
                 <Link
-                  to={`/ip/${ip.tokenId || ip.id}`}
+                  to={`/ip/${ip.tokenId || ip.id}?userAddress=${ip.creator}`}
                   className="px-6 py-2 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all"
                 >
                   View Details
@@ -463,7 +509,7 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
         </div>
 
         <Link
-          to={`/ip/${ip.tokenId || ip.id}`}
+ to={`/ip/${ip.tokenId || ip.id}?userAddress=${ip.creator}`}
           className="block w-full text-center px-6 py-3 gradient-bg text-white rounded-xl font-medium hover:shadow-lg transition-all"
         >
           View Details

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth, useAuthState } from '@campnetwork/origin/react'
-import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useReadContract, useWalletClient } from 'wagmi'
+import { useBalance, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther, type Address } from 'viem'
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '@/lib/contracts'
 
@@ -64,7 +64,7 @@ export interface LotteryData {
 
 export function useCampfireIntegration() {
   const auth= useAuth()
-  const { authenticated:isConnected, loading: authLoading } = useAuthState()
+  const { authenticated:isConnected } = useAuthState()
   const { origin, jwt,recoverProvider } = auth
 const address = auth.walletAddress
 
@@ -78,7 +78,7 @@ const address = auth.walletAddress
   const [success, setSuccess] = useState<string | null>(null)
 
   // // Get user's ETH balance
-  const { data: balance } = useBalance({ address: auth.walletAddress })
+  const { data: balance } = useBalance({ address: auth.walletAddress as Address | undefined })
 
   // Clear messages after some time
   useEffect(() => {
@@ -124,36 +124,35 @@ if (!origin) {
       setLoading(false)
     }}
 
-const getDataByTokenId = async (tokenId: bigint) => {
-    if (!origin) {
-      setError('Origin SDK not available')
-      return null
-    }
-
-    setLoading(true)
-    setError(null)
-
-    try {
-     const access=  await origin.dataStatus( tokenId)
-    //  const access=  await origin.hasAccess((address as Address) ?? ('0x0000000000000000000000000000000000000000' as Address), tokenId)
-     console.log(access)
-     let data 
-     if(access){
-
-        data = await origin.getData(tokenId)
-       console.log(data)
-      }
-      return data
-    } catch (err) {
-      console.error('Get NFT data error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to get NFT data')
-      return null
-    } finally {
-      setLoading(false)
-    }
+const getDataByTokenId = async (tokenId: string, userAdd?: string) => {
+  if (!origin) {
+    setError('Origin SDK not available')
+    return null
   }
 
-  const getOriginData = async () => {
+  setLoading(true)
+  setError(null)
+
+  try {
+
+    const data = await getOriginData(userAdd || '')
+    console.log("data form getby token ", data)
+    let res = []
+    if (data) {
+      res = data.filter((item: any) => item.id === tokenId)
+    }
+    console.log("data form getby token ", res[0])
+    return res[0]
+  } catch (err) {
+    console.error('Get NFT data error:', err)
+    setError(err instanceof Error ? err.message : 'Failed to get NFT data')
+    return null
+  } finally {
+    setLoading(false)
+  }
+}
+
+  const getOriginData = async (userAdd:string ) => {
     if (!origin) {
       setError('Origin SDK not available')
       return null
@@ -164,7 +163,7 @@ const getDataByTokenId = async (tokenId: bigint) => {
 
     try {
       // Build the URL with the user's address
-      const userAddress = address || ''
+      const userAddress = userAdd ? userAdd as Address : address as Address
       const url = `https://basecamp.cloud.blockscout.com/api/v2/addresses/${userAddress}/nft?type=ERC-721`
       const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch NFT data')
@@ -178,8 +177,34 @@ const getDataByTokenId = async (tokenId: bigint) => {
       setLoading(false)
     }
   }
+ async function uploadToIPFS(file: File): Promise<string> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_PINATA_JWT}` // Use your Pinata JWT here
+      },
+      body: formData
+    });
 
-  
+    const result = await response.json();
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+
+    if (!ipfsUrl || ipfsUrl === '') {
+      throw new Error("Failed to get IPFS URL after upload");
+    }
+
+    setSuccess("File uploaded to IPFS successfully!");
+    return ipfsUrl;
+  } catch (error) {
+    console.error("IPFS upload error:", error);
+    setError("Failed to upload file to IPFS");
+    throw error;
+  }
+} 
 
   const mintIPWithOrigin = async (
     file: File,
@@ -202,6 +227,17 @@ await recoverProvider()
     setError(null)
     
     try {
+      let ipfsUrl = "";
+      try {
+        const rest =  await uploadToIPFS(file);
+        if (!rest) {
+          throw new Error('Failed to upload file to IPFS')
+        }
+        ipfsUrl = rest;
+      } catch (error) {
+        return; 
+      }
+      console.log("first", ipfsUrl)
       const licenseTerms = {
         price: BigInt(parseFloat(license.price || '1') * 1e18),
         duration: parseInt(license.duration || '2345000'),
@@ -216,6 +252,9 @@ await recoverProvider()
         file,
       {
          ...metadata,
+         image: ipfsUrl,
+         owner: address,
+ price: license.price ,
           mimeType: file.type,
           size: file.size,
         },
@@ -258,6 +297,7 @@ await recoverProvider()
 
   // === MARKETPLACE INTEGRATION ===
   const listNFTOnMarketplace = async (tokenId: bigint, price: string) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -268,7 +308,18 @@ await recoverProvider()
 
     try {
       const priceWei = parseEther(price)
-      
+     let res= await origin?.approve(CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address, tokenId)
+if(!res) {
+        setError('Failed to approve NFT to marketplace')
+        throw new Error('Failed to transfer NFT to marketplace')
+      }
+//        res =     await origin?.transferFrom(auth.walletAddress as Address, CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address, tokenId)
+//       console.log(res)
+//       if(!res) {
+//         setError('Failed to transfer NFT to marketplace')
+//         throw new Error('Failed to transfer NFT to marketplace')
+//       }
+
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
         abi: CONTRACT_ABIS.MARKETPLACE,
@@ -286,6 +337,7 @@ await recoverProvider()
   }
 
   const buyNFTFromMarketplace = async (tokenId: bigint, price: string) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -296,13 +348,14 @@ await recoverProvider()
 
     try {
       const priceWei = parseEther(price)
+
       
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
         abi: CONTRACT_ABIS.MARKETPLACE,
         functionName: 'buyNFT',
         args: [tokenId],
-        value: priceWei,
+        value: priceWei, // Convert to wei
       })
 
       return true
@@ -340,14 +393,63 @@ await recoverProvider()
     }
   }
 
-  // Read marketplace data
+  // Read marketplace data - this should be a hook that returns the useReadContract result
   const useMarketplaceListing = (tokenId: bigint) => {
     return useReadContract({
       address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
       abi: CONTRACT_ABIS.MARKETPLACE,
-      functionName: 'listings',
+      functionName: 'getListing',
       args: [tokenId],
     })
+  }
+
+  // Get all active marketplace listings
+  const useAllMarketplaceListings = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
+      abi: CONTRACT_ABIS.MARKETPLACE,
+      functionName: 'getAllActiveListings',
+      args: [],
+    })
+  }
+
+  // Get all listed token IDs
+  const useAllListedTokenIds = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
+      abi: CONTRACT_ABIS.MARKETPLACE,
+      functionName: 'getAllListedTokenIds',
+      args: [],
+    })
+  }
+
+  // Update listing price
+  const updateListingPrice = async (tokenId: bigint, newPrice: string) => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const priceWei = parseEther(newPrice)
+      
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
+        abi: CONTRACT_ABIS.MARKETPLACE,
+        functionName: 'updatePrice',
+        args: [tokenId, priceWei],
+      })
+
+      return true
+    } catch (err) {
+      console.error('Update price error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to update price')
+      setLoading(false)
+      return false
+    }
   }
 
   // === AUCTION INTEGRATION ===
@@ -438,9 +540,113 @@ await recoverProvider()
     return useReadContract({
       address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
       abi: CONTRACT_ABIS.AUCTION,
-      functionName: 'auctions',
+      functionName: 'getAuction',
       args: [tokenId],
     })
+  }
+
+  // Get all active auctions
+  const useAllActiveAuctions = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+      abi: CONTRACT_ABIS.AUCTION,
+      functionName: 'getAllActiveAuctions',
+      args: [],
+    })
+  }
+
+  // Get all auction token IDs
+  const useAllAuctionTokenIds = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+      abi: CONTRACT_ABIS.AUCTION,
+      functionName: 'getAllAuctionTokenIds',
+      args: [],
+    })
+  }
+
+  // Get time remaining for auction
+  const useAuctionTimeRemaining = (tokenId: bigint) => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+      abi: CONTRACT_ABIS.AUCTION,
+      functionName: 'getTimeRemaining',
+      args: [tokenId],
+    })
+  }
+
+  // Check if auction has ended
+  const useHasAuctionEnded = (tokenId: bigint) => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+      abi: CONTRACT_ABIS.AUCTION,
+      functionName: 'hasAuctionEnded',
+      args: [tokenId],
+    })
+  }
+
+  // Get pending returns for user
+  const usePendingReturns = (userAddress: Address) => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+      abi: CONTRACT_ABIS.AUCTION,
+      functionName: 'pendingReturns',
+      args: [userAddress],
+    })
+  }
+
+  // Cancel auction
+  const cancelAuction = async (tokenId: bigint) => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+        abi: CONTRACT_ABIS.AUCTION,
+        functionName: 'cancelAuction',
+        args: [tokenId],
+      })
+
+      return true
+    } catch (err) {
+      console.error('Cancel auction error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to cancel auction')
+      setLoading(false)
+      return false
+    }
+  }
+
+  // Withdraw from auction
+  const withdrawFromAuction = async () => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
+        abi: CONTRACT_ABIS.AUCTION,
+        functionName: 'withdraw',
+        args: [],
+      })
+
+      return true
+    } catch (err) {
+      console.error('Withdraw error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to withdraw')
+      setLoading(false)
+      return false
+    }
   }
 
   // === ESCROW INTEGRATION ===
@@ -629,6 +835,118 @@ await recoverProvider()
     })
   }
 
+  // Get next lottery ID
+  const useNextLotteryId = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
+      abi: CONTRACT_ABIS.LOTTERY,
+      functionName: 'nextLotteryId',
+      args: [],
+    })
+  }
+
+  // Get players for a lottery
+  const useLotteryPlayers = (lotteryId: bigint) => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
+      abi: CONTRACT_ABIS.LOTTERY,
+      functionName: 'getPlayers',
+      args: [lotteryId],
+    })
+  }
+
+  // Create lottery
+  const createLottery = async (
+    title: string,
+    description: string,
+    ticketPrice: string,
+    totalTickets: number,
+    endTime: bigint
+  ) => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const ticketPriceWei = parseEther(ticketPrice)
+      
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
+        abi: CONTRACT_ABIS.LOTTERY,
+        functionName: 'createLottery',
+        args: [title, description, ticketPriceWei, BigInt(totalTickets), endTime],
+      })
+
+      return true
+    } catch (err) {
+      console.error('Create lottery error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create lottery')
+      setLoading(false)
+      return false
+    }
+  }
+
+  // Buy lottery tickets (updated function name)
+  const buyLotteryTickets = async (lotteryId: bigint, quantity: number, totalCost: string) => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const totalCostWei = parseEther(totalCost)
+      
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
+        abi: CONTRACT_ABIS.LOTTERY,
+        functionName: 'buyTickets',
+        args: [lotteryId, BigInt(quantity)],
+        value: totalCostWei,
+      })
+
+      return true
+    } catch (err) {
+      console.error('Buy lottery tickets error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to buy lottery tickets')
+      setLoading(false)
+      return false
+    }
+  }
+
+  // Announce lottery winner
+  const announceLotteryWinner = async (lotteryId: bigint) => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
+        abi: CONTRACT_ABIS.LOTTERY,
+        functionName: 'announceWinner',
+        args: [lotteryId],
+      })
+
+      return true
+    } catch (err) {
+      console.error('Announce winner error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to announce winner')
+      setLoading(false)
+      return false
+    }
+  }
+
   // === UTILITY FUNCTIONS ===
   const formatBalance = (balance: bigint | undefined) => {
     if (!balance) return '0'
@@ -668,12 +986,22 @@ await recoverProvider()
     buyNFTFromMarketplace,
     cancelListing,
     useMarketplaceListing,
+    useAllMarketplaceListings,
+    useAllListedTokenIds,
+    updateListingPrice,
 
     // Auction functions
     createAuction,
     placeBid,
     endAuction,
     useAuctionDetails,
+    useAllActiveAuctions,
+    useAllAuctionTokenIds,
+    useAuctionTimeRemaining,
+    useHasAuctionEnded,
+    usePendingReturns,
+    cancelAuction,
+    withdrawFromAuction,
 
     // Escrow functions
     createEscrowDeal,
@@ -686,6 +1014,11 @@ await recoverProvider()
     buyLotteryTicket,
     drawLotteryWinner,
     useLotteryDetails,
+    useNextLotteryId,
+    useLotteryPlayers,
+    createLottery,
+    buyLotteryTickets,
+    announceLotteryWinner,
 
     // Utilities
     formatBalance,

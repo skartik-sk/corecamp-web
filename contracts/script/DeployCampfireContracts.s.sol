@@ -79,7 +79,7 @@ contract DeployCampfireContracts is Script {
    
         // Deploy main contracts
 
-        nftContract = address(0x5a3f832b47b948dA27aE788E96A0CD7BB0dCd1c1);
+        nftContract = address(0xF90733b9eCDa3b49C250B2C3E3E42c96fC93324E);
         console.log("CampfireIPNFT deployed at:", nftContract);
         
         CoreCampFactory factoryContract = new CoreCampFactory(
@@ -101,7 +101,7 @@ contract DeployCampfireContracts is Script {
         
 
 
-        nftContract = address(0x5a3f832b47b948dA27aE788E96A0CD7BB0dCd1c1);
+        nftContract = address(0xF90733b9eCDa3b49C250B2C3E3E42c96fC93324E);
         console.log("CampfireIPNFT deployed at:", nftContract);
         
         CoreCampFactory factoryContract = new CoreCampFactory(

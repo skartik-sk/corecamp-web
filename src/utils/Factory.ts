@@ -1,1 +1,261 @@
-export const FACTORY_ABI=[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"deploymentId","type":"uint256"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"DeploymentStatusChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"deploymentId","type":"uint256"},{"indexed":true,"internalType":"address","name":"nftContract","type":"address"},{"indexed":false,"internalType":"address","name":"marketplace","type":"address"},{"indexed":false,"internalType":"address","name":"escrow","type":"address"},{"indexed":false,"internalType":"address","name":"auction","type":"address"},{"indexed":false,"internalType":"address","name":"lottery","type":"address"}],"name":"MarketplaceDeployed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allDeploymentIds","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"nftContract","type":"address"}],"name":"deployCampfireMarketplace","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"nftContract","type":"address"}],"name":"deployMarketplace","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"deployments","outputs":[{"internalType":"address","name":"marketplace","type":"address"},{"internalType":"address","name":"escrow","type":"address"},{"internalType":"address","name":"auction","type":"address"},{"internalType":"address","name":"lottery","type":"address"},{"internalType":"address","name":"nftContract","type":"address"},{"internalType":"uint256","name":"deployedAt","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"deploymentId","type":"uint256"}],"name":"emergencyWithdrawFromContracts","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getAllDeploymentIds","outputs":[{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"deploymentId","type":"uint256"}],"name":"getDeployment","outputs":[{"components":[{"internalType":"address","name":"marketplace","type":"address"},{"internalType":"address","name":"escrow","type":"address"},{"internalType":"address","name":"auction","type":"address"},{"internalType":"address","name":"lottery","type":"address"},{"internalType":"address","name":"nftContract","type":"address"},{"internalType":"uint256","name":"deployedAt","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"internalType":"struct CoreCampFactory.MarketplaceContracts","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"nftContract","type":"address"}],"name":"getDeploymentByNFT","outputs":[{"components":[{"internalType":"address","name":"marketplace","type":"address"},{"internalType":"address","name":"escrow","type":"address"},{"internalType":"address","name":"auction","type":"address"},{"internalType":"address","name":"lottery","type":"address"},{"internalType":"address","name":"nftContract","type":"address"},{"internalType":"uint256","name":"deployedAt","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"internalType":"struct CoreCampFactory.MarketplaceContracts","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getDeploymentCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"deploymentId","type":"uint256"}],"name":"isValidDeployment","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"nftToDeploymentId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"deploymentId","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"name":"setDeploymentStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"deploymentId","type":"uint256"},{"internalType":"uint256","name":"newFeeBps","type":"uint256"}],"name":"updateAllPlatformFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]
+export const FACTORY_ABI = [
+    { type: "constructor", inputs: [], stateMutability: "nonpayable" },
+    { type: "receive", stateMutability: "payable" },
+    {
+      type: "function",
+      name: "allDeploymentIds",
+      inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "deployCampfireMarketplace",
+      inputs: [
+        { name: "nftContract", type: "address", internalType: "address" },
+      ],
+      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "deployMarketplace",
+      inputs: [
+        { name: "nftContract", type: "address", internalType: "address" },
+      ],
+      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "deployments",
+      inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      outputs: [
+        { name: "marketplace", type: "address", internalType: "address" },
+        { name: "escrow", type: "address", internalType: "address" },
+        { name: "auction", type: "address", internalType: "address" },
+        { name: "lottery", type: "address", internalType: "address" },
+        { name: "nftContract", type: "address", internalType: "address" },
+        { name: "deployedAt", type: "uint256", internalType: "uint256" },
+        { name: "isActive", type: "bool", internalType: "bool" },
+      ],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "emergencyWithdrawFromContracts",
+      inputs: [
+        { name: "deploymentId", type: "uint256", internalType: "uint256" },
+      ],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "getAllDeploymentIds",
+      inputs: [],
+      outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "getDeployment",
+      inputs: [
+        { name: "deploymentId", type: "uint256", internalType: "uint256" },
+      ],
+      outputs: [
+        {
+          name: "",
+          type: "tuple",
+          internalType: "struct CoreCampFactory.MarketplaceContracts",
+          components: [
+            { name: "marketplace", type: "address", internalType: "address" },
+            { name: "escrow", type: "address", internalType: "address" },
+            { name: "auction", type: "address", internalType: "address" },
+            { name: "lottery", type: "address", internalType: "address" },
+            { name: "nftContract", type: "address", internalType: "address" },
+            { name: "deployedAt", type: "uint256", internalType: "uint256" },
+            { name: "isActive", type: "bool", internalType: "bool" },
+          ],
+        },
+      ],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "getDeploymentByNFT",
+      inputs: [
+        { name: "nftContract", type: "address", internalType: "address" },
+      ],
+      outputs: [
+        {
+          name: "",
+          type: "tuple",
+          internalType: "struct CoreCampFactory.MarketplaceContracts",
+          components: [
+            { name: "marketplace", type: "address", internalType: "address" },
+            { name: "escrow", type: "address", internalType: "address" },
+            { name: "auction", type: "address", internalType: "address" },
+            { name: "lottery", type: "address", internalType: "address" },
+            { name: "nftContract", type: "address", internalType: "address" },
+            { name: "deployedAt", type: "uint256", internalType: "uint256" },
+            { name: "isActive", type: "bool", internalType: "bool" },
+          ],
+        },
+      ],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "getDeploymentCount",
+      inputs: [],
+      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "isValidDeployment",
+      inputs: [
+        { name: "deploymentId", type: "uint256", internalType: "uint256" },
+      ],
+      outputs: [{ name: "", type: "bool", internalType: "bool" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "nftToDeploymentId",
+      inputs: [{ name: "", type: "address", internalType: "address" }],
+      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "owner",
+      inputs: [],
+      outputs: [{ name: "", type: "address", internalType: "address" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "renounceOwnership",
+      inputs: [],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "setDeploymentStatus",
+      inputs: [
+        { name: "deploymentId", type: "uint256", internalType: "uint256" },
+        { name: "isActive", type: "bool", internalType: "bool" },
+      ],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "transferOwnership",
+      inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "updateAllPlatformFees",
+      inputs: [
+        { name: "deploymentId", type: "uint256", internalType: "uint256" },
+        { name: "newFeeBps", type: "uint256", internalType: "uint256" },
+      ],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "withdraw",
+      inputs: [],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "event",
+      name: "DeploymentStatusChanged",
+      inputs: [
+        {
+          name: "deploymentId",
+          type: "uint256",
+          indexed: true,
+          internalType: "uint256",
+        },
+        {
+          name: "isActive",
+          type: "bool",
+          indexed: false,
+          internalType: "bool",
+        },
+      ],
+      anonymous: false,
+    },
+    {
+      type: "event",
+      name: "MarketplaceDeployed",
+      inputs: [
+        {
+          name: "deploymentId",
+          type: "uint256",
+          indexed: true,
+          internalType: "uint256",
+        },
+        {
+          name: "nftContract",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        {
+          name: "marketplace",
+          type: "address",
+          indexed: false,
+          internalType: "address",
+        },
+        {
+          name: "escrow",
+          type: "address",
+          indexed: false,
+          internalType: "address",
+        },
+        {
+          name: "auction",
+          type: "address",
+          indexed: false,
+          internalType: "address",
+        },
+        {
+          name: "lottery",
+          type: "address",
+          indexed: false,
+          internalType: "address",
+        },
+      ],
+      anonymous: false,
+    },
+    {
+      type: "event",
+      name: "OwnershipTransferred",
+      inputs: [
+        {
+          name: "previousOwner",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        {
+          name: "newOwner",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+      ],
+      anonymous: false,
+    },
+  ]
+  

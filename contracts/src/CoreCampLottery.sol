@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CoreCampLottery is ReentrancyGuard, Ownable {
     
     struct Lottery {
+        uint256 tokenId;
         address owner;
         uint256 ticketPrice;
         uint256 maxTickets;
@@ -29,6 +30,9 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     
     // Maps lottery ID to lottery details
     mapping(uint256 => Lottery) public lotteries;
+    
+    // Array to track all lottery IDs
+    uint256[] public lotteryIds;
     
     // Maps lottery ID to NFT token ID
     mapping(uint256 => uint256) public lotteryToTokenId;
@@ -89,6 +93,7 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         uint256 endTime = block.timestamp + duration;
         
         lotteries[lotteryId] = Lottery({
+            tokenId: tokenId,
             owner: msg.sender,
             ticketPrice: ticketPrice,
             maxTickets: maxTickets,
@@ -102,6 +107,9 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
         
         lotteryToTokenId[lotteryId] = tokenId;
         tokenToLotteryId[tokenId] = lotteryId;
+        
+        // Add to lottery IDs array
+        lotteryIds.push(lotteryId);
         
         emit LotteryCreated(lotteryId, tokenId, msg.sender, ticketPrice, maxTickets, endTime);
         
@@ -237,10 +245,46 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     }
     
     /**
+     * @dev Get all lottery IDs
+     */
+    function getAllLotteryIds() external view returns (uint256[] memory) {
+        return lotteryIds;
+    }
+    
+    /**
+     * @dev Get all active lotteries with details
+     */
+    function getAllActiveLotteries() external view returns (Lottery[] memory) {
+        uint256 count = 0;
+        
+        // First, count active lotteries
+        for (uint256 i = 0; i < lotteryIds.length; i++) {
+            if (lotteries[lotteryIds[i]].isActive) {
+                count++;
+            }
+        }
+        
+        // Create array with active lotteries
+        Lottery[] memory activeLotteries = new Lottery[](count);
+        uint256 currentIndex = 0;
+        
+        for (uint256 i = 0; i < lotteryIds.length; i++) {
+            uint256 lotteryId = lotteryIds[i];
+            if (lotteries[lotteryId].isActive) {
+                activeLotteries[currentIndex] = lotteries[lotteryId];
+                currentIndex++;
+            }
+        }
+        
+        return activeLotteries;
+    }
+    
+    /**
      * @dev Get lottery details
      * @param lotteryId The lottery ID to get details for
      */
     function getLottery(uint256 lotteryId) external view returns (
+        uint256 tokenId,
         address owner,
         uint256 ticketPrice,
         uint256 maxTickets,
@@ -252,6 +296,7 @@ contract CoreCampLottery is ReentrancyGuard, Ownable {
     ) {
         Lottery memory lottery = lotteries[lotteryId];
         return (
+            lottery.tokenId,
             lottery.owner,
             lottery.ticketPrice,
             lottery.maxTickets,

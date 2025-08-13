@@ -14,6 +14,7 @@ contract CoreCampEscrow is ReentrancyGuard, Ownable {
     enum DealStatus { Created, Funded, Confirmed, Cancelled }
     
     struct EscrowDeal {
+        uint256 tokenId;
         address seller;
         address buyer;
         uint256 price;
@@ -25,6 +26,9 @@ contract CoreCampEscrow is ReentrancyGuard, Ownable {
     
     // Maps a token ID to its escrow deal
     mapping(uint256 => EscrowDeal) public deals;
+    
+    // Array to track all escrow token IDs
+    uint256[] public escrowTokenIds;
     
     // Reference to the CampfireIPNFT contract
     IERC721 public immutable campfireNFT;
@@ -62,6 +66,7 @@ contract CoreCampEscrow is ReentrancyGuard, Ownable {
         require(deals[tokenId].status == DealStatus.Cancelled || deals[tokenId].seller == address(0), "Deal already exists");
         
         deals[tokenId] = EscrowDeal({
+            tokenId: tokenId,
             seller: msg.sender,
             buyer: buyer,
             price: price,
@@ -70,6 +75,9 @@ contract CoreCampEscrow is ReentrancyGuard, Ownable {
             status: DealStatus.Created,
             createdAt: block.timestamp
         });
+        
+        // Add to escrow token IDs array
+        escrowTokenIds.push(tokenId);
         
         emit DealCreated(tokenId, msg.sender, buyer, price);
     }
@@ -192,6 +200,43 @@ contract CoreCampEscrow is ReentrancyGuard, Ownable {
         }
         
         emit DealCompleted(tokenId, deal.seller, deal.buyer, deal.price);
+    }
+    
+    /**
+     * @dev Get all escrow token IDs
+     */
+    function getAllEscrowTokenIds() external view returns (uint256[] memory) {
+        return escrowTokenIds;
+    }
+    
+    /**
+     * @dev Get all active escrow deals with details
+     */
+    function getAllActiveEscrows() external view returns (EscrowDeal[] memory) {
+        uint256 count = 0;
+        
+        // First, count active escrows (not cancelled or confirmed)
+        for (uint256 i = 0; i < escrowTokenIds.length; i++) {
+            EscrowDeal memory deal = deals[escrowTokenIds[i]];
+            if (deal.status == DealStatus.Created || deal.status == DealStatus.Funded) {
+                count++;
+            }
+        }
+        
+        // Create array with active escrows
+        EscrowDeal[] memory activeEscrows = new EscrowDeal[](count);
+        uint256 currentIndex = 0;
+        
+        for (uint256 i = 0; i < escrowTokenIds.length; i++) {
+            uint256 tokenId = escrowTokenIds[i];
+            EscrowDeal memory deal = deals[tokenId];
+            if (deal.status == DealStatus.Created || deal.status == DealStatus.Funded) {
+                activeEscrows[currentIndex] = deal;
+                currentIndex++;
+            }
+        }
+        
+        return activeEscrows;
     }
     
     /**

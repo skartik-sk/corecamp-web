@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CoreCampAuction is ReentrancyGuard, Ownable {
     
     struct Auction {
+        uint256 tokenId;
         address payable seller;
         uint256 startingBid;
         uint256 endTime;
@@ -23,6 +24,9 @@ contract CoreCampAuction is ReentrancyGuard, Ownable {
     
     // Maps token ID to its auction
     mapping(uint256 => Auction) public auctions;
+    
+    // Array to track all auction token IDs
+    uint256[] public auctionTokenIds;
     
     // To handle refunds for outbid users
     mapping(address => uint256) public pendingReturns;
@@ -71,6 +75,7 @@ contract CoreCampAuction is ReentrancyGuard, Ownable {
         uint256 endTime = block.timestamp + duration;
         
         auctions[tokenId] = Auction({
+            tokenId: tokenId,
             seller: payable(msg.sender),
             startingBid: startingBid,
             endTime: endTime,
@@ -79,6 +84,9 @@ contract CoreCampAuction is ReentrancyGuard, Ownable {
             isActive: true,
             createdAt: block.timestamp
         });
+        
+        // Add to auction token IDs array
+        auctionTokenIds.push(tokenId);
         
         emit AuctionCreated(tokenId, msg.sender, startingBid, endTime);
     }
@@ -204,6 +212,41 @@ contract CoreCampAuction is ReentrancyGuard, Ownable {
         }
         
         emit AuctionCancelled(tokenId, msg.sender);
+    }
+    
+    /**
+     * @dev Get all auction token IDs
+     */
+    function getAllAuctionTokenIds() external view returns (uint256[] memory) {
+        return auctionTokenIds;
+    }
+    
+    /**
+     * @dev Get all active auctions with details
+     */
+    function getAllActiveAuctions() external view returns (Auction[] memory) {
+        uint256 count = 0;
+        
+        // First, count active auctions
+        for (uint256 i = 0; i < auctionTokenIds.length; i++) {
+            if (auctions[auctionTokenIds[i]].isActive) {
+                count++;
+            }
+        }
+        
+        // Create array with active auctions
+        Auction[] memory activeAuctions = new Auction[](count);
+        uint256 currentIndex = 0;
+        
+        for (uint256 i = 0; i < auctionTokenIds.length; i++) {
+            uint256 tokenId = auctionTokenIds[i];
+            if (auctions[tokenId].isActive) {
+                activeAuctions[currentIndex] = auctions[tokenId];
+                currentIndex++;
+            }
+        }
+        
+        return activeAuctions;
     }
     
     /**

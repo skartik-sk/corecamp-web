@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuthState } from '@campnetwork/origin/react';
+import { useAuthState, useAuth } from '@campnetwork/origin/react';
 import { formatEther } from 'viem';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -10,9 +10,12 @@ import {
   DollarSign,
   Users,
   Gavel,
+  Sparkles,
   Target,
   Star,
-  Timer
+  Timer,
+  Crown,
+  TrendingUp
 } from 'lucide-react';
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration';
 import { formatAddress } from '@/lib/utils';
@@ -71,6 +74,7 @@ const mockAuctions: Auction[] = [
 ];
 
 export default function Auctions() {
+  const { origin } = useAuth();
   const { authenticated } = useAuthState();
   const { useAllActiveAuctions, getDataByTokenId, placeBid, error, loading } = useCampfireIntegration();
   
