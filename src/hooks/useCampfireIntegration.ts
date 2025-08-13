@@ -320,6 +320,8 @@ if(!res) {
 //         throw new Error('Failed to transfer NFT to marketplace')
 //       }
 
+console.log(priceWei,price)
+
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
         abi: CONTRACT_ABIS.MARKETPLACE,
@@ -348,7 +350,7 @@ if(!res) {
 
     try {
       const priceWei = parseEther(price)
-
+console.log(priceWei,price)
       
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_MARKETPLACE as Address,
@@ -657,6 +659,7 @@ if(!res) {
 
   // === ESCROW INTEGRATION ===
   const createEscrowDeal = async (tokenId: bigint, buyer: Address, price: string) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -667,6 +670,7 @@ if(!res) {
 
     try {
       const priceWei = parseEther(price)
+
       
       // First approve the NFT to the escrow contract
       let res = await origin?.approve(CONTRACT_ADDRESSES.CORE_CAMP_ESCROW as Address, tokenId)
@@ -682,8 +686,8 @@ if(!res) {
         args: [tokenId, buyer, priceWei],
       })
 
-      setSuccess('Escrow deal created successfully! Waiting for buyer to fund the deal.')
-      return true
+      // setSuccess('Escrow deal created successfully! Waiting for buyer to fund the deal.')
+return true
     } catch (err) {
       console.error('Create escrow deal error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create escrow deal')

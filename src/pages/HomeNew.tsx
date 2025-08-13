@@ -138,7 +138,7 @@ export default function HomeNew() {
             >
               <span className="block ">CoreCamp</span>
               <span className="block text-gradient">
-                IP Marketplace
+              Create. Own. Register. Earn
               </span>
             </motion.h1>
 

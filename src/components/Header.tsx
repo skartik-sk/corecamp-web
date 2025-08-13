@@ -103,8 +103,10 @@ await recoverProvider()
                 >
                   <span className="text-gradient">CoreCamp</span>
                 </motion.h1>
-                <p className="text-xs text-cool-1 font-medium">
-                  IP Marketplace
+                <p className="text-xs text-cool-1 font-medium ml-1.5" >
+                Create. Own. 
+                <br />
+                Register. Earn
                 </p>
               </div>
             </Link>
@@ -269,7 +271,7 @@ await recoverProvider()
                     </div>
                     <div>
                       <h2 className="text-lg font-bold text-gradient">CoreCamp</h2>
-                      <p className="text-xs text-cool-1">IP Marketplace</p>
+                      <p className="text-xs text-cool-1">Create. Own. Register. Earn</p>
                     </div>
                   </div>
                   <motion.button
