@@ -668,6 +668,13 @@ if(!res) {
     try {
       const priceWei = parseEther(price)
       
+      // First approve the NFT to the escrow contract
+      let res = await origin?.approve(CONTRACT_ADDRESSES.CORE_CAMP_ESCROW as Address, tokenId)
+      if (!res) {
+        setError('Failed to approve NFT to escrow contract')
+        throw new Error('Failed to approve NFT to escrow contract')
+      }
+
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_ESCROW as Address,
         abi: CONTRACT_ABIS.ESCROW,
@@ -675,6 +682,7 @@ if(!res) {
         args: [tokenId, buyer, priceWei],
       })
 
+      setSuccess('Escrow deal created successfully! Waiting for buyer to fund the deal.')
       return true
     } catch (err) {
       console.error('Create escrow deal error:', err)
@@ -704,6 +712,7 @@ if(!res) {
         value: priceWei,
       })
 
+      setSuccess('Deal funded successfully! Both parties can now confirm the transfer.')
       return true
     } catch (err) {
       console.error('Fund escrow deal error:', err)
@@ -730,10 +739,38 @@ if(!res) {
         args: [tokenId],
       })
 
+      setSuccess('Transfer confirmed! The deal will complete when both parties confirm.')
       return true
     } catch (err) {
       console.error('Confirm transfer error:', err)
       setError(err instanceof Error ? err.message : 'Failed to confirm transfer')
+      setLoading(false)
+      return false
+    }
+  }
+
+  const cancelEscrowDeal = async (tokenId: bigint) => {
+    if (!isConnected) {
+      setError('Please connect your wallet')
+      return false
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      await writeContract({
+        address: CONTRACT_ADDRESSES.CORE_CAMP_ESCROW as Address,
+        abi: CONTRACT_ABIS.ESCROW,
+        functionName: 'cancelDeal',
+        args: [tokenId],
+      })
+
+      setSuccess('Escrow deal cancelled successfully!')
+      return true
+    } catch (err) {
+      console.error('Cancel escrow deal error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to cancel escrow deal')
       setLoading(false)
       return false
     }
@@ -746,6 +783,32 @@ if(!res) {
       functionName: 'deals',
       args: [tokenId],
     })
+  }
+
+  // Get all active escrow deals for current user
+  const useUserEscrowDeals = () => {
+    const [escrowDeals, setEscrowDeals] = useState<EscrowData[]>([])
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+      const fetchEscrowDeals = async () => {
+        if (!address) return
+
+        setLoading(true)
+        try {
+          // This would need to be implemented based on your contract's events or getter functions
+          // For now, we'll return empty array - you'll need to implement based on your contract
+          setEscrowDeals([])
+        } catch (err) {
+          console.error('Error fetching escrow deals:', err)
+        }
+        setLoading(false)
+      }
+
+      fetchEscrowDeals()
+    }, [address])
+
+    return { data: escrowDeals, loading }
   }
 
   // === LOTTERY INTEGRATION ===
@@ -782,7 +845,7 @@ if(!res) {
     }
   }
 
-  const buyLotteryTicket = async (lotteryId: bigint, ticketPrice: string) => {
+  const buyLotteryTicket = async (tokenId: bigint, ticketPrice: string) => {
     await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
@@ -799,7 +862,7 @@ if(!res) {
         address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
         abi: CONTRACT_ABIS.LOTTERY,
         functionName: 'buyTicket',
-        args: [lotteryId],
+        args: [tokenId],
         value: ticketPriceWei,
       })
 
@@ -812,7 +875,7 @@ if(!res) {
     }
   }
 
-  const drawLotteryWinner = async (lotteryId: bigint) => {
+  const drawLotteryWinner = async (tokenId: bigint) => {
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -826,7 +889,7 @@ if(!res) {
         address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
         abi: CONTRACT_ABIS.LOTTERY,
         functionName: 'drawLottery',
-        args: [lotteryId],
+        args: [tokenId],
       })
 
       return true
@@ -838,12 +901,12 @@ if(!res) {
     }
   }
 
-  const useLotteryDetails = (lotteryId: bigint) => {
+  const useLotteryDetails = (tokenId: bigint) => {
     return useReadContract({
       address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
       abi: CONTRACT_ABIS.LOTTERY,
       functionName: 'lotteries',
-      args: [lotteryId],
+      args: [tokenId],
     })
   }
 
@@ -964,7 +1027,9 @@ if(!res) {
     createEscrowDeal,
     fundEscrowDeal,
     confirmEscrowTransfer,
+    cancelEscrowDeal,
     useEscrowDeal,
+    useUserEscrowDeals,
 
     // Lottery functions
     startLottery,

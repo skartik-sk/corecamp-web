@@ -37,38 +37,7 @@ interface Auction {
   isActive?: boolean;
 }
 
-const mockAuctions: Auction[] = [
-  {
-    id: '1',
-    title: 'Epic Digital Art Collection',
-    description: 'Stunning collection of AI-generated artwork with exclusive commercial rights.',
-    imageUrl: 'https://picsum.photos/400/300?random=1',
-    currentBid: 15.5,
-    minimumBid: 0.1,
-    endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
-    bidCount: 47,
-    views: 2341,
-    likes: 189,
-    category: 'Digital Art',
-    creator: 'ArtistPro',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Premium Music Beats Pack',
-    description: 'Professional music production pack with unlimited licensing.',
-    imageUrl: 'https://picsum.photos/400/300?random=2',
-    currentBid: 8.2,
-    minimumBid: 0.05,
-    endTime: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours
-    bidCount: 23,
-    views: 1456,
-    likes: 92,
-    category: 'Music',
-    creator: 'BeatMaker',
-    featured: true
-  }
-];
+
 
 export default function Auctions() {
   const { authenticated } = useAuthState();
@@ -77,7 +46,7 @@ export default function Auctions() {
   // Get real auction data from contract
   const { data: contractAuctions, isLoading: auctionsLoading, error: auctionsError } = useAllActiveAuctions();
   
-  const [auctions, setAuctions] = useState<Auction[]>(mockAuctions);
+  const [auctions, setAuctions] = useState<Auction[]>([]);
   const [filter, setFilter] = useState<'all' | 'ending-soon' | 'featured'>('all');
   const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
   const [countdown, setCountdown] = useState<Record<string, string>>({});

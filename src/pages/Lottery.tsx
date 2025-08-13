@@ -39,36 +39,6 @@ interface LotteryRound {
   userAddress?: string
 }
 
-const mockLotteries: LotteryRound[] = [
-  {
-    id: '1',
-    image: 'https://example.com/weekly-ip-jackpot.jpg',
-    name: 'Weekly IP Jackpot',
-    description: 'Win exclusive rights to premium IP assets worth over 10 ETH!',
-    prizePool: '15.5 ETH',
-    ticketPrice: '0.01 ETH',
-    totalTickets: 1000,
-    ticketsSold: 742,
-    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
-    isActive: true,
-    participants: 234,
-    featured: true,
-  },
-  {
-    id: '2',
-    image: 'https://example.com/ai-art-collection.jpg',
-    name: 'AI Art Collection Raffle',
-    description: 'Rare AI-generated artwork collection with commercial licensing.',
-    prizePool: '8.2 ETH',
-    ticketPrice: '0.005 ETH',
-    totalTickets: 500,
-    ticketsSold: 345,
-    endTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
-    isActive: true,
-    participants: 156,
-    featured: true,
-  }
-];
 
 export default function Lottery() {
   const { authenticated } = useAuthState();
@@ -87,7 +57,7 @@ export default function Lottery() {
   // Get real lottery data from contract
   const { data: contractLotteries, isLoading: lotteriesLoading, error: lotteriesError } = useAllActiveLotteries();
   
-  const [lotteries, setLotteries] = useState<LotteryRound[]>(mockLotteries);
+  const [lotteries, setLotteries] = useState<LotteryRound[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'ended' | 'upcoming'>('all');
   const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
   const [countdown, setCountdown] = useState<Record<string, string>>({});
@@ -122,7 +92,7 @@ export default function Lottery() {
             } catch (err) {
               console.error('Error fetching NFT data for token:', lottery.tokenId, err);
             }
-            
+
 
             return {
               id: lottery.tokenId?.toString() || index.toString(),
@@ -133,7 +103,7 @@ export default function Lottery() {
               prizePool: `${parseFloat(nftData.price || BigInt(0)) } CAMP`,
               ticketPrice: `${parseFloat(formatEther(lottery.ticketPrice || BigInt(0))).toFixed(3)} ETH`,
               totalTickets: Number(lottery.maxTickets || 0),
-              ticketsSold: Number(lottery.ticketsSold || 0),
+              ticketsSold: Number(lottery.players.length || 0),
               endTime: new Date(Number(lottery.endTime || 0) * 1000),
               status: lottery.isActive ? ('active' as const) : ('ended' as const),
               isActive: lottery.isActive, // Add isActive property
@@ -210,13 +180,11 @@ export default function Lottery() {
     const totalCost = (parseFloat(lottery.ticketPrice.split(' ')[0]) * ticketCount).toString();
 
     try {
-      await buyLotteryTicket(BigInt(lotteryId), totalCost.toString());
-    
-      // UI will update when contract data refreshes
+      await buyLotteryTicket(BigInt(lotteryId), totalCost);
     } catch (err) {
       console.error('Error buying tickets:', err);
       alert('Failed to buy tickets. Please try again.');
-    }
+    } 
   };
 
   return (
@@ -367,6 +335,8 @@ export default function Lottery() {
                   featured={true}
                   index={index}
                   userAddress={auth?.walletAddress || ''}
+                   hasEnded={countdown[lottery.id] === "Draw time!"}
+              
                 />
               ))}
             </div>
@@ -394,7 +364,7 @@ export default function Lottery() {
                   onBuyTickets={(count) => buyTickets(lottery.id, count)}
                   index={index}
                   userAddress={auth?.walletAddress || ''}
-                  hasEnded={countdown === "Draw time!"}
+                  hasEnded={countdown[lottery.id] === "Draw time!"}
                 />
               ))}
             </AnimatePresence>
