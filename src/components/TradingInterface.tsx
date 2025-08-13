@@ -7,21 +7,26 @@ import {
   Zap, 
   AlertCircle,
   CheckCircle,
-  X
+  X,
+  MessageCircle
 } from 'lucide-react'
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
+import { EscrowNegotiation } from './EscrowNegotiation'
 import type { Address } from 'viem'
+import type { CampfireIP } from '@/hooks/useCampfireIntegration'
 
 interface TradingInterfaceProps {
   tokenId: bigint
   currentPrice: string
   isOwner: boolean
+  ipData?: CampfireIP // Add IP data for P2P negotiation
 }
 
 export default function TradingInterface({ 
   tokenId, 
   currentPrice, 
-  isOwner 
+  isOwner,
+  ipData
 }: TradingInterfaceProps) {
   const {
     listNFTOnMarketplace,
@@ -42,6 +47,7 @@ export default function TradingInterface({
 
   const [activeTab, setActiveTab] = useState<'buy' | 'auction' | 'escrow' | 'lottery'>('buy')
   const [showModal, setShowModal] = useState(false)
+  const [showP2PNegotiation, setShowP2PNegotiation] = useState(false)
   const [formData, setFormData] = useState({
     price: currentPrice || '0.001',
     duration: '7', // days
@@ -351,37 +357,59 @@ export default function TradingInterface({
             animate={{ opacity: 1, x: 0 }}
             className="space-y-4"
           >
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Buyer Address
-              </label>
-              <input
-                type="text"
-                placeholder="0x..."
-                value={formData.buyerAddress}
-                onChange={(e) => setFormData({...formData, buyerAddress: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange font-mono text-sm"
-              />
+            {/* P2P Negotiation Option */}
+            <div className="bg-gradient-to-r from-orange-50 to-pink-50 p-4 rounded-xl border border-orange-200">
+              <div className="flex items-center mb-3">
+                <MessageCircle className="h-5 w-5 text-orange-600 mr-2" />
+                <h3 className="font-semibold text-gray-800">P2P Negotiation</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Start a secure escrow negotiation with real-time chat and step-by-step deal management.
+              </p>
+              <button
+                onClick={() => setShowP2PNegotiation(true)}
+                disabled={!ipData}
+                className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50"
+              >
+                Start P2P Negotiation
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Agreed Price (ETH)
-              </label>
-              <input
-                type="number"
-                step="0.001"
-                value={formData.price}
-                onChange={(e) => setFormData({...formData, price: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange"
-              />
+
+            {/* Quick Escrow Option */}
+            <div className="border-t pt-4">
+              <h3 className="font-semibold text-gray-800 mb-3">Quick Escrow</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Buyer Address
+                </label>
+                <input
+                  type="text"
+                  placeholder="0x..."
+                  value={formData.buyerAddress}
+                  onChange={(e) => setFormData({...formData, buyerAddress: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange font-mono text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Agreed Price (ETH)
+                </label>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange"
+                />
+              </div>
+              <button
+                onClick={handleCreateEscrow}
+                disabled={loading || !formData.buyerAddress}
+                className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50"
+              >
+                {loading ? 'Creating...' : 'Create Escrow Deal'}
+              </button>
             </div>
-            <button
-              onClick={handleCreateEscrow}
-              disabled={loading || !formData.buyerAddress}
-              className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create Escrow Deal'}
-            </button>
           </motion.div>
         )}
 
@@ -540,6 +568,17 @@ export default function TradingInterface({
               {renderModalContent()}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* P2P Escrow Negotiation Modal */}
+      <AnimatePresence>
+        {showP2PNegotiation && ipData && (
+          <EscrowNegotiation
+            ip={ipData}
+            onClose={() => setShowP2PNegotiation(false)}
+            initialPrice={currentPrice}
+          />
         )}
       </AnimatePresence>
     </>

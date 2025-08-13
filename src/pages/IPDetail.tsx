@@ -276,7 +276,7 @@ const currAddress = auth.walletAddress as Address
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-mono text-camp-dark">
-                  {ip.owner.slice(0, 6)}...{ip.owner.slice(-4)}
+                  {ip.creator.slice(0, 6)}...{ip.creator.slice(-4)}
                 </span>
                 </div>
               </div>
@@ -290,10 +290,34 @@ const currAddress = auth.walletAddress as Address
         {/* Licensing & Purchase */}
         {data.id && ip.owner && data.value && (
           <TradingInterface
-          tokenId={BigInt(data.id)}
-          ipOwner={ip.owner as Address}
-          currentPrice={ip.price?ip.price:data.value.replace(' ETH', '')}
-          isOwner={ip.owner === currAddress}
+            tokenId={BigInt(data.id)}
+            currentPrice={ip.price?ip.price:data.value.replace(' ETH', '')}
+            isOwner={ip.creator === currAddress}
+            ipData={{
+              tokenId: BigInt(data.id),
+              title: ip.title || data.metadata?.name || 'Untitled IP',
+              description: ip.description || data.metadata?.description || '',
+              category: ip.category || '',
+              tags: ip.tags || [],
+              creator: userAddress as Address,
+              owner: ip.creator as Address,
+              price: ip.price || data.value.replace(' ETH', ''),
+              currency: 'ETH',
+              royalty: ip.royalty || 0,
+              duration: ip.duration || 0,
+              views: ip.views || 0,
+              likes: ip.likes || 0,
+              createdAt: ip.createdAt || new Date().toISOString(),
+              image: ip.image || data.metadata?.image || '/api/placeholder/600/400',
+              mimeType: ip.mimeType || 'image/jpeg',
+              size: ip.size || 0,
+              isListed: false,
+              isInAuction: false,
+              isInEscrow: false,
+              isInLottery: false,
+              verified: false,
+              featured: false
+            }}
           />
         )}
 

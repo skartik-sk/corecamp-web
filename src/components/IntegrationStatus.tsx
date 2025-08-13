@@ -28,7 +28,7 @@ export default function IntegrationStatus() {
     >
       <div className="glass-effect rounded-2xl p-4 border border-white/20 shadow-2xl">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-camp-dark text-sm">🔥 Campfire Integration</h3>
+          <h3 className="font-semibold text-camp-dark text-sm">🔥 CampCore Integration</h3>
           <button
             onClick={() => setShowStatus(false)}
             className="text-gray-400 hover:text-gray-600 text-xs"
