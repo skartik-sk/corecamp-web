@@ -162,6 +162,7 @@ export default function Marketplace() {
             }
           })
         )
+
         // Only show active listings
         const activeListings = transformedListings.filter((listing: any) => listing.isActive)
         setIpAssets(activeListings)

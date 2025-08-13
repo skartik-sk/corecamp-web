@@ -143,7 +143,7 @@ export default function TradingInterface({
           disabled={loading}
           className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50"
         >
-          {loading ? 'Processing...' : `Buy Access - ${currentPrice} ETH`}
+          {loading ? 'Processing...' : `Buy Access - ${currentPrice} CAMP`}
         </button>
         <button
           onClick={() => setShowModal(true)}
@@ -162,7 +162,7 @@ export default function TradingInterface({
           <h3 className="text-2xl font-bold text-camp-dark">Start Negotiation</h3>
           
           <div className="flex space-x-2 bg-gray-100 rounded-xl p-1">
-            {(['auction', 'escrow'] as const).map((tab) => (
+            {([ 'escrow'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -172,12 +172,12 @@ export default function TradingInterface({
                     : 'text-gray-600 hover:text-camp-orange'
                 }`}
               >
-                {tab === 'auction' && <><Gavel className="w-4 h-4 mr-2 inline" />Auction</>}
+                {/* {tab === 'auction' && <><Gavel className="w-4 h-4 mr-2 inline" />Auction</>} */}
                 {tab === 'escrow' && <><ShieldCheck className="w-4 h-4 mr-2 inline" />P2P Deal</>}
               </button>
             ))}
           </div>
-
+{/* 
           {activeTab === 'auction' && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -215,7 +215,7 @@ export default function TradingInterface({
                 {loading ? 'Creating...' : 'Start Auction'}
               </button>
             </motion.div>
-          )}
+          )} */}
 
           {activeTab === 'escrow' && (
             <motion.div

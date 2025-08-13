@@ -23,7 +23,7 @@ export default function Footer() {
                 CoreCamp
               </span>
               <p className="text-xs text-camp-gray">
-                IP Marketplace powered by Camp Network
+               Create. Own. Register. Earn
               </p>
             </div>
           </div>
