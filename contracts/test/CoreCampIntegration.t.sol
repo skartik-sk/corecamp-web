@@ -295,6 +295,7 @@ contract CoreCampIntegrationTest is Test {
         
         // Verify lottery creation
         (
+            uint256 tokenIdReturned,
             address lotteryOwner,
             uint256 lotteryTicketPrice,
             uint256 lotteryMaxTickets,
@@ -341,7 +342,7 @@ contract CoreCampIntegrationTest is Test {
         
 
         // Verify lottery completion
-        (, ,,  isActive, , ,  winner, isDrawn) = lottery.getLottery(lotteryId);
+        (, ,,, isActive, , ,  winner, isDrawn) = lottery.getLottery(lotteryId);
         assertFalse(isActive);
         assertEq(winner, collector1);
         assertTrue(isDrawn);

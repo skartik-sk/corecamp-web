@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CoreCampMarketplace is ReentrancyGuard, Ownable {
     
     struct Listing {
+        uint256 tokenId;    // The token ID being listed
         address seller;     // The address of the person selling the NFT
         uint256 price;      // The price in wei
         bool isActive;      // Is the listing currently active or has it been sold/cancelled?
@@ -19,6 +20,9 @@ contract CoreCampMarketplace is ReentrancyGuard, Ownable {
     
     // Maps a token ID from the Origin IP-NFT contract to its listing details
     mapping(uint256 => Listing) public listings;
+    
+    // Array to track all listed token IDs
+    uint256[] public listedTokenIds;
     
     // Reference to the CampfireIPNFT contract
     IERC721 public immutable campfireNFT;
@@ -50,10 +54,14 @@ contract CoreCampMarketplace is ReentrancyGuard, Ownable {
         require(!listings[tokenId].isActive, "NFT already listed");
         
         listings[tokenId] = Listing({
+            tokenId: tokenId,
             seller: msg.sender,
             price: price,
             isActive: true
         });
+        
+        // Add to listed token IDs array
+        listedTokenIds.push(tokenId);
         
         emit NFTListed(tokenId, msg.sender, price);
     }
@@ -135,6 +143,41 @@ contract CoreCampMarketplace is ReentrancyGuard, Ownable {
      */
     function getListing(uint256 tokenId) external view returns (Listing memory) {
         return listings[tokenId];
+    }
+    
+    /**
+     * @dev Get all listed token IDs
+     */
+    function getAllListedTokenIds() external view returns (uint256[] memory) {
+        return listedTokenIds;
+    }
+    
+    /**
+     * @dev Get all active listings with details
+     */
+    function getAllActiveListings() external view returns (Listing[] memory) {
+        uint256 count = 0;
+        
+        // First, count active listings
+        for (uint256 i = 0; i < listedTokenIds.length; i++) {
+            if (listings[listedTokenIds[i]].isActive) {
+                count++;
+            }
+        }
+        
+        // Create array with active listings
+        Listing[] memory activeListings = new Listing[](count);
+        uint256 currentIndex = 0;
+        
+        for (uint256 i = 0; i < listedTokenIds.length; i++) {
+            uint256 tokenId = listedTokenIds[i];
+            if (listings[tokenId].isActive) {
+                activeListings[currentIndex] = listings[tokenId];
+                currentIndex++;
+            }
+        }
+        
+        return activeListings;
     }
     
     /**

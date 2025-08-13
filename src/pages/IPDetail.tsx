@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@campnetwork/origin/react'
 import { ArrowLeft, Heart, Share2, Eye, Calendar, User, DollarSign, Clock } from 'lucide-react'
 import TradingInterface from '@/components/TradingInterface'
@@ -49,22 +49,29 @@ const mockIP: IPDetails = {
 
 export default function IPDetail() {
   const { id } = useParams<{ id: string }>()
-  const { origin } = useAuth()
+    const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const auth = useAuth()
+  const { origin } = auth
   const [ip, setIp] = useState<IPDetails | null>(null)
+  const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [isNegotiating, setIsNegotiating] = useState(false)
   const {getDataByTokenId}= useCampfireIntegration()
 
   // Mock user address for demo - in real app this would come from wallet
-  const userAddress = '0x1234567890abcdef' as Address
-
+   const userAddress = params.get('userAddress') || (auth.walletAddress as Address)
+const currAddress = auth.walletAddress as Address
   useEffect(() => {
     // Simulate loading IP details
     const fetchdata = async () => {
-      const data = await getDataByTokenId(BigInt(id || '0'))
+      const data = await getDataByTokenId(id || '0',userAddress)
+      console.log(data)
       if (data) {
-        setIp(data)
+        setData(data)
+        setIp(data.metadata)
+        setIp((prev) => ({ ...prev, ...data.metadata, creator: userAddress }))
         setIsLiked(data.isLiked)
       }
       setIsLoading(false)
@@ -123,203 +130,239 @@ export default function IPDetail() {
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <Link
-          to="/marketplace"
-          className="inline-flex items-center text-cool-1 hover:text-camp-dark mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Marketplace
-        </Link>
+      {/* Back Button */}
+      <Link
+        to="/marketplace"
+        className="inline-flex items-center text-cool-1 hover:text-camp-dark mb-8 transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Back to Marketplace
+      </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image/Media */}
-          <div className="space-y-4">
-            <div className="relative bg-white rounded-2xl overflow-hidden card-shadow">
-              <img
-                src={`https://picsum.photos/600/400?random=${ip.tokenId}`}
-                alt={ip.title}
-                className="w-full h-96 object-cover"
-              />
-              <div className="absolute top-4 right-4 flex space-x-2">
-                <button
-                  onClick={handleLike}
-                  className={`p-2 rounded-full ${
-                    isLiked
-                      ? 'bg-red-500 text-white'
-                      : 'bg-white/90 text-gray-700 hover:bg-white'
-                  } transition-colors`}
-                >
-                  <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                </button>
-                <button className="p-2 bg-white/90 text-gray-700 hover:bg-white rounded-full transition-colors">
-                  <Share2 className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* File Info */}
-            <div className="bg-white rounded-2xl p-6 card-shadow">
-              <h3 className="text-lg font-semibold text-camp-dark mb-4">File Information</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-cool-1">Type:</span>
-                  <span className="text-camp-dark">{ip.mimeType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cool-1">Size:</span>
-                  <span className="text-camp-dark">{(ip.size / 1024 / 1024).toFixed(2)} MB</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cool-1">Token ID:</span>
-                  <span className="text-camp-dark font-mono">{ip.tokenId}</span>
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Image/Media */}
+        <div className="space-y-4">
+        {ip.image && (
+          <div className="relative bg-white rounded-2xl overflow-hidden card-shadow">
+          <img
+            src={ip.image || `https://picsum.photos/600/400?random=${ip.tokenId}`}
+            alt={ip.title || 'IP Image'}
+            className="w-full h-96 object-cover"
+          />
+          <div className="absolute top-4 right-4 flex space-x-2">
+            <button
+            onClick={handleLike}
+            className={`p-2 rounded-full ${
+              isLiked
+              ? 'bg-red-500 text-white'
+              : 'bg-white/90 text-gray-700 hover:bg-white'
+            } transition-colors`}
+            >
+            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+            </button>
+            <button className="p-2 bg-white/90 text-gray-700 hover:bg-white rounded-full transition-colors">
+            <Share2 className="w-5 h-5" />
+            </button>
           </div>
-
-          {/* Details */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 card-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <h1 className="text-3xl font-bold text-camp-dark">{ip.title}</h1>
-                <span className="bg-cool-3 text-cool-1 text-sm px-3 py-1 rounded-full">
-                  {ip.category}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-6 text-sm text-cool-1 mb-6">
-                <span className="flex items-center">
-                  <Eye className="w-4 h-4 mr-1" />
-                  {ip.views} views
-                </span>
-                <span className="flex items-center">
-                  <Heart className="w-4 h-4 mr-1" />
-                  {ip.likes} likes
-                </span>
-                <span className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  {new Date(ip.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-
-              <p className="text-cool-1 mb-6 leading-relaxed">
-                {ip.description}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {ip.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-cool-3/50 text-cool-1 text-sm px-3 py-1 rounded-full"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Creator/Owner Info */}
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-cool-1 mb-1">Created by</p>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center mr-3">
-                        <User className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="font-mono text-camp-dark">
-                        {ip.creator.slice(0, 6)}...{ip.creator.slice(-4)}
-                      </span>
-                    </div>
-                  </div>
-                  {ip.creator !== ip.owner && (
-                    <div>
-                      <p className="text-sm text-cool-1 mb-1">Owned by</p>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-gradient-to-r from-cool-1 to-cool-2 rounded-full flex items-center justify-center mr-3">
-                          <User className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="font-mono text-camp-dark">
-                          {ip.owner.slice(0, 6)}...{ip.owner.slice(-4)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Licensing & Purchase */}
-            <TradingInterface
-              tokenId={BigInt(ip.tokenId)}
-              ipOwner={ip.owner as Address}
-              currentPrice={ip.price.replace(' ETH', '')}
-              isOwner={ip.owner === userAddress}
-            />
-
-            {/* Original licensing component - keeping for reference */}
-            <div className="bg-white rounded-2xl p-6 card-shadow">
-              <h3 className="text-xl font-semibold text-camp-dark mb-4">License Information</h3>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center text-cool-1">
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Price
-                  </span>
-                  <span className="text-xl font-bold text-camp-orange">{ip.price}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center text-cool-1">
-                    <Clock className="w-4 h-4 mr-2" />
-                    Duration
-                  </span>
-                  <span className="text-camp-dark">
-                    {ip.duration === 0 ? 'Perpetual' : `${ip.duration} days`}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-cool-1">Royalty</span>
-                  <span className="text-camp-dark">{ip.royalty}%</span>
-                </div>
-              </div>
-              
-              <p className="text-sm text-cool-1 mt-2">
-                This shows the original license terms from the IP NFT.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Negotiation Modal */}
-        {isNegotiating && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
-              <h3 className="text-xl font-semibold text-camp-dark mb-4">Negotiate License Terms</h3>
-              <p className="text-cool-1 mb-4">
-                Start a conversation with the IP owner to negotiate custom terms.
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setIsNegotiating(false)}
-                  className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <Link
-                  to="/chat"
-                  className="flex-1 py-2 bg-camp-orange text-white rounded-lg hover:bg-warm-1 transition-colors text-center"
-                  onClick={() => setIsNegotiating(false)}
-                >
-                  Start Chat
-                </Link>
-              </div>
-            </div>
           </div>
         )}
+
+        {/* File Info */}
+        {(ip.mimeType || ip.size || ip.tokenId) && (
+          <div className="bg-white rounded-2xl p-6 card-shadow">
+          <h3 className="text-lg font-semibold text-camp-dark mb-4">File Information</h3>
+          <div className="space-y-2 text-sm">
+            {ip.mimeType && (
+            <div className="flex justify-between">
+              <span className="text-cool-1">Type:</span>
+              <span className="text-camp-dark">{ip.mimeType}</span>
+            </div>
+            )}
+            {ip.size && (
+            <div className="flex justify-between">
+              <span className="text-cool-1">Size:</span>
+              <span className="text-camp-dark">{(ip.size / 1024 / 1024).toFixed(2)} MB</span>
+            </div>
+            )}
+            {ip.tokenId && (
+            <div className="flex justify-between">
+              <span className="text-cool-1">Token ID:</span>
+              <span className="text-camp-dark font-mono">{ip.tokenId}</span>
+            </div>
+            )}
+          </div>
+          </div>
+        )}
+        </div>
+
+        {/* Details */}
+        <div className="space-y-6">
+        {(ip.title || ip.category || ip.views || ip.likes || ip.createdAt || ip.description || (ip.tags && ip.tags.length > 0)) && (
+          <div className="bg-white rounded-2xl p-6 card-shadow">
+          <div className="flex items-start justify-between mb-4">
+            {ip.title && (
+            <h1 className="text-3xl font-bold text-camp-dark">{ip.title}</h1>
+            )}
+            {ip.category && (
+            <span className="bg-cool-3 text-cool-1 text-sm px-3 py-1 rounded-full">
+              {ip.category}
+            </span>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-6 text-sm text-cool-1 mb-6">
+            {ip.views !== undefined && (
+            <span className="flex items-center">
+              <Eye className="w-4 h-4 mr-1" />
+              {ip.views} views
+            </span>
+            )}
+            {ip.likes !== undefined && (
+            <span className="flex items-center">
+              <Heart className="w-4 h-4 mr-1" />
+              {ip.likes} likes
+            </span>
+            )}
+            {ip.createdAt && (
+            <span className="flex items-center">
+              <Calendar className="w-4 h-4 mr-1" />
+              {new Date(ip.createdAt).toLocaleDateString()}
+            </span>
+            )}
+          </div>
+
+          {ip.description && (
+            <p className="text-cool-1 mb-6 leading-relaxed">
+            {ip.description}
+            </p>
+          )}
+
+          {/* Tags */}
+          {ip.tags && ip.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+            {ip.tags.map((tag, index) => (
+              <span
+              key={index}
+              className="bg-cool-3/50 text-cool-1 text-sm px-3 py-1 rounded-full"
+              >
+              #{tag}
+              </span>
+            ))}
+            </div>
+          )}
+
+          {/* Creator/Owner Info */}
+          {(ip.creator || ip.owner) && (
+            <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              {ip.owner && (
+              <div>
+                <p className="text-sm text-cool-1 mb-1">Created by</p>
+                <div className="flex items-center">
+                <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center mr-3">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-mono text-camp-dark">
+                  {ip.owner.slice(0, 6)}...{ip.owner.slice(-4)}
+                </span>
+                </div>
+              </div>
+              )}
+              {ip.creator && ip.owner && ip.creator !== ip.owner && (
+              <div>
+                <p className="text-sm text-cool-1 mb-1">Owned by</p>
+                <div className="flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-cool-1 to-cool-2 rounded-full flex items-center justify-center mr-3">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-mono text-camp-dark">
+                  {ip.owner.slice(0, 6)}...{ip.owner.slice(-4)}
+                </span>
+                </div>
+              </div>
+              )}
+            </div>
+            </div>
+          )}
+          </div>
+        )}
+
+        {/* Licensing & Purchase */}
+        {data.id && ip.owner && data.value && (
+          <TradingInterface
+          tokenId={BigInt(data.id)}
+          ipOwner={ip.owner as Address}
+          currentPrice={ip.price?ip.price:data.value.replace(' ETH', '')}
+          isOwner={ip.owner === currAddress}
+          />
+        )}
+
+        {/* License Information Card */}
+        {(ip.price || ip.duration !== undefined || ip.royalty !== undefined) && (
+          <div className="bg-white rounded-2xl p-6 card-shadow">
+          <h3 className="text-xl font-semibold text-camp-dark mb-4">License Information</h3>
+          <div className="space-y-4 mb-6">
+            {ip.price && (
+            <div className="flex items-center justify-between">
+              <span className="flex items-center text-cool-1">
+              <DollarSign className="w-4 h-4 mr-2" />
+              Price
+              </span>
+              <span className="text-xl font-bold text-camp-orange">{ip.price}</span>
+            </div>
+            )}
+            {ip.duration !== undefined && (
+            <div className="flex items-center justify-between">
+              <span className="flex items-center text-cool-1">
+              <Clock className="w-4 h-4 mr-2" />
+              Duration
+              </span>
+              <span className="text-camp-dark">
+              {ip.duration === 0 ? 'Perpetual' : `${ip.duration} days`}
+              </span>
+            </div>
+            )}
+            {ip.royalty !== undefined && (
+            <div className="flex items-center justify-between">
+              <span className="text-cool-1">Royalty</span>
+              <span className="text-camp-dark">{ip.royalty}%</span>
+            </div>
+            )}
+          </div>
+          <p className="text-sm text-cool-1 mt-2">
+            This shows the original license terms from the IP NFT.
+          </p>
+          </div>
+        )}
+        </div>
+      </div>
+
+      {/* Negotiation Modal */}
+      {isNegotiating && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+          <h3 className="text-xl font-semibold text-camp-dark mb-4">Negotiate License Terms</h3>
+          <p className="text-cool-1 mb-4">
+          Start a conversation with the IP owner to negotiate custom terms.
+          </p>
+          <div className="flex space-x-3">
+          <button
+            onClick={() => setIsNegotiating(false)}
+            className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <Link
+            to="/chat"
+            className="flex-1 py-2 bg-camp-orange text-white rounded-lg hover:bg-warm-1 transition-colors text-center"
+            onClick={() => setIsNegotiating(false)}
+          >
+            Start Chat
+          </Link>
+          </div>
+        </div>
+        </div>
+      )}
       </div>
     </div>
   )

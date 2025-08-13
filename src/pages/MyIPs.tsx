@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuthState } from '@campnetwork/origin/react'
+import { useAuth, useAuthState } from '@campnetwork/origin/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, 
@@ -100,13 +100,15 @@ const itemVariants = {
 
 export default function MyIPs() {
   const { authenticated } = useAuthState()
+  const auth = useAuth();
+
   const { getOriginData,getOriginUsage,isPending : isLoading } = useCampfireIntegration()
   const [ipAssets,setIpAssets] = useState<any[]>([])
   const [filteredIPs, setFilteredIPs] = useState<any[]>(mockUserIPs)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-
+const userAddress = auth.walletAddress;
   const [stats,setStats] = useState({
     totalIPs: 3,
     totalRevenue: 23.4,
@@ -116,8 +118,9 @@ export default function MyIPs() {
 
     useEffect(() => {
   const fetchData = async () => {
-    const data = await getOriginData()
+    let data = await getOriginData(userAddress ? userAddress : '')
     if (data) {
+      data = data.filter(ip => ip.metadata?.image && ip.metadata.image !== '')
       console.log(data)
       setIpAssets(data)
       setStats(prev => ({
@@ -378,12 +381,14 @@ export default function MyIPs() {
               initial="hidden"
               animate="visible"
               className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-                  : 'space-y-4'
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-4'
               }
             >
-              {filteredIPs.map((ip,index) => (
+              {filteredIPs
+              .filter(ip => ip.metadata?.image && ip.metadata.image !== '')
+              .map((ip, index) => (
                 <IPCard key={ip.id} value={ip.value} id={ip.id} ip={ip.metadata} viewMode={viewMode} />
               ))}
             </motion.div>
@@ -526,7 +531,7 @@ function IPCard({ id, ip, viewMode ,value }: { id: string; ip: any; value:string
             </div>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-camp-dark">{value} CAMP</div>
+            <div className="text-lg font-bold text-camp-dark">{ip.price ? ip.price : value} CAMP</div>
             <div className="text-xs text-green-600">+{ip.revenue} CAMP</div>
           </div>
         </div>

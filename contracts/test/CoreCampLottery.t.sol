@@ -82,6 +82,7 @@ contract CoreCampLotteryTest is Test {
         
         // Verify lottery creation
         (
+            uint256 tokenIdReturned,
             address lotteryOwner,
             uint256 ticketPrice,
             uint256 maxTickets,
@@ -181,7 +182,7 @@ contract CoreCampLotteryTest is Test {
         assertEq(players.length, 1);
         assertEq(players[0], player1);
         
-        (,,, bool isActive, uint256 ticketsSold,,,) = lottery.getLottery(lotteryId);
+        (,, ,, bool isActive, uint256 ticketsSold,,,) = lottery.getLottery(lotteryId);
         assertTrue(isActive);
         assertEq(ticketsSold, 1);
     }
@@ -380,7 +381,7 @@ contract CoreCampLotteryTest is Test {
         vm.stopPrank();
         
         // Verify cancellation
-        (,,, bool isActive,,,, bool isDrawn) = lottery.getLottery(lotteryId);
+        (,,,, bool isActive,,,, bool isDrawn) = lottery.getLottery(lotteryId);
         assertFalse(isActive);
         assertFalse(isDrawn);
     }
