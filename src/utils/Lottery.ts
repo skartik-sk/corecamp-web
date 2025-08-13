@@ -23,7 +23,7 @@ export const LOTTERY_ABI = [
     {
       type: "function",
       name: "buyTicket",
-      inputs: [{ name: "lotteryId", type: "uint256", internalType: "uint256" }],
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
       outputs: [],
       stateMutability: "payable",
     },
@@ -39,21 +39,21 @@ export const LOTTERY_ABI = [
     {
       type: "function",
       name: "canDrawLottery",
-      inputs: [{ name: "lotteryId", type: "uint256", internalType: "uint256" }],
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
       outputs: [{ name: "", type: "bool", internalType: "bool" }],
       stateMutability: "view",
     },
     {
       type: "function",
       name: "cancelLottery",
-      inputs: [{ name: "lotteryId", type: "uint256", internalType: "uint256" }],
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
       outputs: [],
       stateMutability: "nonpayable",
     },
     {
       type: "function",
       name: "drawLottery",
-      inputs: [{ name: "lotteryId", type: "uint256", internalType: "uint256" }],
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
       outputs: [],
       stateMutability: "nonpayable",
     },
@@ -91,17 +91,24 @@ export const LOTTERY_ABI = [
     },
     {
       type: "function",
-      name: "getAllLotteryIds",
+      name: "getAllLotteryTokenIds",
       inputs: [],
       outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
       stateMutability: "view",
     },
     {
       type: "function",
+      name: "getCurrentLotteryId",
+      inputs: [],
+      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
       name: "getLottery",
-      inputs: [{ name: "lotteryId", type: "uint256", internalType: "uint256" }],
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
       outputs: [
-        { name: "tokenId", type: "uint256", internalType: "uint256" },
+        { name: "lotteryTokenId", type: "uint256", internalType: "uint256" },
         { name: "owner", type: "address", internalType: "address" },
         { name: "ticketPrice", type: "uint256", internalType: "uint256" },
         { name: "maxTickets", type: "uint256", internalType: "uint256" },
@@ -115,8 +122,25 @@ export const LOTTERY_ABI = [
     },
     {
       type: "function",
+      name: "getLotteryStatus",
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
+      outputs: [
+        { name: "exists", type: "bool", internalType: "bool" },
+        { name: "isActive", type: "bool", internalType: "bool" },
+        { name: "hasEnded", type: "bool", internalType: "bool" },
+        { name: "isSoldOut", type: "bool", internalType: "bool" },
+        { name: "currentTime", type: "uint256", internalType: "uint256" },
+        { name: "endTime", type: "uint256", internalType: "uint256" },
+        { name: "ticketsSold", type: "uint256", internalType: "uint256" },
+        { name: "maxTickets", type: "uint256", internalType: "uint256" },
+        { name: "owner", type: "address", internalType: "address" },
+      ],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
       name: "getPlayers",
-      inputs: [{ name: "lotteryId", type: "uint256", internalType: "uint256" }],
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
       outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
       stateMutability: "view",
     },
@@ -139,14 +163,14 @@ export const LOTTERY_ABI = [
     },
     {
       type: "function",
-      name: "lotteryIds",
-      inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+      name: "lotteryExists",
+      inputs: [{ name: "tokenId", type: "uint256", internalType: "uint256" }],
+      outputs: [{ name: "", type: "bool", internalType: "bool" }],
       stateMutability: "view",
     },
     {
       type: "function",
-      name: "lotteryToTokenId",
+      name: "lotteryTokenIds",
       inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
       outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
       stateMutability: "view",
@@ -368,4 +392,4 @@ export const LOTTERY_ABI = [
       anonymous: false,
     },
   ]
- 
+  

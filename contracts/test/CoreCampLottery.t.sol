@@ -74,9 +74,10 @@ contract CoreCampLotteryTest is Test {
         uint256 expectedEndTime = block.timestamp + LOTTERY_DURATION;
         
         vm.expectEmit(true, true, true, true);
-        emit LotteryCreated(1, tokenId, seller, TICKET_PRICE, MAX_TICKETS, expectedEndTime);
+        emit LotteryCreated(tokenId, tokenId, seller, TICKET_PRICE, MAX_TICKETS, expectedEndTime);
         
         lotteryId = lottery.startLottery(tokenId, TICKET_PRICE, MAX_TICKETS, LOTTERY_DURATION);
+        assertEq(lotteryId, tokenId); // Should return tokenId now
         
         vm.stopPrank();
         
@@ -101,7 +102,7 @@ contract CoreCampLotteryTest is Test {
         assertEq(endTime, expectedEndTime);
         assertEq(winner, address(0));
         assertFalse(isDrawn);
-        assertEq(lotteryId, 1);
+        assertEq(lotteryId, tokenId); // Should return tokenId now
     }
     
     function test_startLottery_RevertZeroTicketPrice() public {

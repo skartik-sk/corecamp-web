@@ -6,31 +6,24 @@ import {
   ShieldCheck, 
   Zap, 
   AlertCircle,
-  Clock,
-  User,
-  Sparkles,
   CheckCircle,
   X
 } from 'lucide-react'
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
-import { formatAddress } from '@/lib/utils'
 import type { Address } from 'viem'
 
 interface TradingInterfaceProps {
   tokenId: bigint
-  ipOwner: Address
   currentPrice: string
   isOwner: boolean
 }
 
 export default function TradingInterface({ 
   tokenId, 
-  ipOwner, 
   currentPrice, 
   isOwner 
 }: TradingInterfaceProps) {
   const {
-    buyAccessWithOrigin,
     listNFTOnMarketplace,
     buyNFTFromMarketplace,
     createAuction,
@@ -101,7 +94,7 @@ export default function TradingInterface({
 
   const handleStartLottery = async () => {
     try {
-      const durationSeconds = parseInt(formData.duration) * 24 * 60 * 60
+      const durationSeconds = parseInt(formData.duration) * 1 * 60 * 60
       await startLottery(
         tokenId, 
         formData.ticketPrice, 
@@ -313,6 +306,85 @@ export default function TradingInterface({
           </motion.div>
         )}
 
+        {activeTab === 'auction' && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Starting Bid (ETH)
+              </label>
+              <input
+                type="number"
+                step="0.001"
+                value={formData.price}
+                onChange={(e) => setFormData({...formData, price: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Duration (days)
+              </label>
+              <input
+                type="number"
+                value={formData.duration}
+                onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange"
+              />
+            </div>
+            <button
+              onClick={handleCreateAuction}
+              disabled={loading}
+              className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50"
+            >
+              {loading ? 'Creating...' : 'Start Auction'}
+            </button>
+          </motion.div>
+        )}
+
+        {activeTab === 'escrow' && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Buyer Address
+              </label>
+              <input
+                type="text"
+                placeholder="0x..."
+                value={formData.buyerAddress}
+                onChange={(e) => setFormData({...formData, buyerAddress: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange font-mono text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Agreed Price (ETH)
+              </label>
+              <input
+                type="number"
+                step="0.001"
+                value={formData.price}
+                onChange={(e) => setFormData({...formData, price: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange"
+              />
+            </div>
+            <button
+              onClick={handleCreateEscrow}
+              disabled={loading || !formData.buyerAddress}
+              className="w-full py-3 gradient-bg text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50"
+            >
+              {loading ? 'Creating...' : 'Create Escrow Deal'}
+            </button>
+          </motion.div>
+        )}
+
         {activeTab === 'lottery' && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -413,22 +485,22 @@ export default function TradingInterface({
         {getActionButton()}
 
         {/* Current Status */}
-        {(marketplaceListing || auctionData || escrowData) && (
+        {(!!marketplaceListing || !!auctionData || !!escrowData) && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-sm text-cool-1 mb-2">Current Status:</p>
-            {marketplaceListing && (
+            {!!marketplaceListing && (
               <div className="flex items-center text-sm text-green-600">
                 <DollarSign className="w-4 h-4 mr-1" />
                 Listed for sale
               </div>
             )}
-            {auctionData && (
+            {!!auctionData && (
               <div className="flex items-center text-sm text-blue-600">
                 <Gavel className="w-4 h-4 mr-1" />
                 In auction
               </div>
             )}
-            {escrowData && (
+            {!!escrowData && (
               <div className="flex items-center text-sm text-purple-600">
                 <ShieldCheck className="w-4 h-4 mr-1" />
                 In escrow

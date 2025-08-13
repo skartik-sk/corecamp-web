@@ -135,13 +135,13 @@ const getDataByTokenId = async (tokenId: string, userAdd?: string) => {
 
   try {
 
-    const data = await getOriginData(userAdd || '')
-    console.log("data form getby token ", data)
+    const data = await getOriginData(userAdd?.toString() || '')
+    // console.log("data form getby token ", data)
     let res = []
     if (data) {
       res = data.filter((item: any) => item.id === tokenId)
     }
-    console.log("data form getby token ", res[0])
+    // console.log("data form getby token ", res[0])
     return res[0]
   } catch (err) {
     console.error('Get NFT data error:', err)
@@ -454,6 +454,7 @@ if(!res) {
 
   // === AUCTION INTEGRATION ===
   const createAuction = async (tokenId: bigint, startingBid: string, duration: number) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -464,7 +465,11 @@ if(!res) {
 
     try {
       const startingBidWei = parseEther(startingBid)
-      
+        let res= await origin?.approve(CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address, tokenId)
+if(!res) {
+        setError('Failed to approve NFT to marketplace')
+        throw new Error('Failed to transfer NFT to marketplace')
+      }
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_AUCTION as Address,
         abi: CONTRACT_ABIS.AUCTION,
@@ -487,7 +492,7 @@ if(!res) {
       return false
     }
 
-    setLoading(true)
+    
     setError(null)
 
     try {
@@ -500,7 +505,7 @@ if(!res) {
         args: [tokenId],
         value: bidWei,
       })
-
+     
       return true
     } catch (err) {
       console.error('Place bid error:', err)
@@ -511,6 +516,7 @@ if(!res) {
   }
 
   const endAuction = async (tokenId: bigint) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -744,6 +750,7 @@ if(!res) {
 
   // === LOTTERY INTEGRATION ===
   const startLottery = async (tokenId: bigint, ticketPrice: string, maxTickets: number, duration: number) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
@@ -754,7 +761,11 @@ if(!res) {
 
     try {
       const ticketPriceWei = parseEther(ticketPrice)
-      
+      let res= await origin?.approve(CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address, tokenId)
+if(!res) {
+        setError('Failed to approve NFT to marketplace')
+        throw new Error('Failed to transfer NFT to marketplace')
+      }
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
         abi: CONTRACT_ABIS.LOTTERY,
@@ -772,12 +783,13 @@ if(!res) {
   }
 
   const buyLotteryTicket = async (lotteryId: bigint, ticketPrice: string) => {
+    await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
       return false
     }
 
-    setLoading(true)
+    //setLoading(true)
     setError(null)
 
     try {
@@ -855,69 +867,14 @@ if(!res) {
     })
   }
 
-  // Create lottery
-  const createLottery = async (
-    title: string,
-    description: string,
-    ticketPrice: string,
-    totalTickets: number,
-    endTime: bigint
-  ) => {
-    if (!isConnected) {
-      setError('Please connect your wallet')
-      return false
-    }
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const ticketPriceWei = parseEther(ticketPrice)
-      
-      await writeContract({
-        address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
-        abi: CONTRACT_ABIS.LOTTERY,
-        functionName: 'createLottery',
-        args: [title, description, ticketPriceWei, BigInt(totalTickets), endTime],
-      })
-
-      return true
-    } catch (err) {
-      console.error('Create lottery error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to create lottery')
-      setLoading(false)
-      return false
-    }
-  }
-
-  // Buy lottery tickets (updated function name)
-  const buyLotteryTickets = async (lotteryId: bigint, quantity: number, totalCost: string) => {
-    if (!isConnected) {
-      setError('Please connect your wallet')
-      return false
-    }
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const totalCostWei = parseEther(totalCost)
-      
-      await writeContract({
-        address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
-        abi: CONTRACT_ABIS.LOTTERY,
-        functionName: 'buyTickets',
-        args: [lotteryId, BigInt(quantity)],
-        value: totalCostWei,
-      })
-
-      return true
-    } catch (err) {
-      console.error('Buy lottery tickets error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to buy lottery tickets')
-      setLoading(false)
-      return false
-    }
+  // Get all active lotteries
+  const useAllActiveLotteries = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.CORE_CAMP_LOTTERY as Address,
+      abi: CONTRACT_ABIS.LOTTERY,
+      functionName: 'getAllActiveLotteries',
+      args: [],
+    })
   }
 
   // Announce lottery winner
@@ -1016,8 +973,7 @@ if(!res) {
     useLotteryDetails,
     useNextLotteryId,
     useLotteryPlayers,
-    createLottery,
-    buyLotteryTickets,
+    useAllActiveLotteries,
     announceLotteryWinner,
 
     // Utilities
