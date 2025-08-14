@@ -1,70 +1,51 @@
-# React + TypeScript + Vite
+# CoreCamp ✨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Create. Own. Register. Earn.
 
-Currently, two official plugins are available:
+**Live Website**: [**corecamp.skartik.xyz**](https://corecamp.skartik.xyz/) | **Project Presentation**: [**corecamp-presentation.skartik.xyz**](https://corecamp-presentation.skartik.xyz/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+**CoreCamp** is a complete Web3 ecosystem built on the Camp Network that transforms how creators monetize their intellectual property. By converting any digital or physical asset into a secure IP-NFT, CoreCamp provides a suite of powerful, decentralized tools to trade, auction, and value IP in a trustless, global marketplace.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🔗 Important Links
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* **Live Website**: [**corecamp.skartik.xyz**](https://corecamp.skartik.xyz/)
+* **Project Presentation Deck**: [**corecamp-presentation.skartik.xyz**](https://corecamp-presentation.skartik.xyz/)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 核心 The Core Problem
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Intellectual property is valuable but trapped. Creators struggle with insecure ownership, slow and complex sales, and unfair monetization. CoreCamp was built to solve this by making IP as liquid and easy to trade as any other digital asset.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Key Features
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+CoreCamp offers a comprehensive suite of smart contracts to give creators maximum flexibility and power:
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-# CoreCamp-web
+* **🛒 Direct Ownership Marketplace**: A storefront for your IP. List your IP-NFTs for a fixed price and allow users to purchase them instantly.
+* **🤝 P2P Escrow Contract(intigration left)**: Negotiate deals directly and securely. Our escrow contract acts as a trustless intermediary, holding assets until both parties confirm the transaction, eliminating any risk of scams.
+* **🏛️ Auction House**: Discover the true market value of your IP. Let the market decide the price through a competitive, time-based auction where the highest bidder automatically wins.
+* **🎟️ Lottery System**: Gamify ownership and engage your community. Put an IP-NFT up as a prize, sell tickets, and let our provably fair system—powered by Chainlink VRF—pick a random winner.
+
+## 🏗️ Architecture Overview
+
+CoreCamp is a decentralized application built with a modern Web3 stack:
+
+* **Frontend**: A responsive and interactive UI built with **Next.js** and **React**.
+* **Web3 Integration**: Wallet connections and smart contract interactions are powered by **wagmi** and **viem**.
+* **Blockchain**: Deployed on the **Camp Network**.
+* **Core Logic**: The entire system is built upon the **Camp Origin SDK**, which handles the foundational creation and management of IP-NFTs. Our four custom smart contracts provide the unique monetization layers.
+
+## 📜 Smart Contracts
+
+All contracts are deployed and verified on the Basecamp block explorer.
+
+| Contract          | Address                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Marketplace** | [`0xf49cC8102fBEAF815e095ac6fCfa8d71AF2E8eB8`](https://basecamp.cloud.blockscout.com/address/0xf49cC8102fBEAF815e095ac6fCfa8d71AF2E8eB8) |
+| **P2P Escrow** | [`0xd3Ff8cdA35be8aC2539b57579587C123DcA70673`](https://basecamp.cloud.blockscout.com/address/0xd3Ff8cdA35be8aC2539b57579587C123DcA70673) |
+| **Auction** | [`0x02280daEC6829D2595163513cF3d04Cc0028AaF9`](https://basecamp.cloud.blockscout.com/address/0x02280daEC6829D2595163513cF3d04Cc0028AaF9) |
+| **Lottery** | [`0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8`](https://basecamp.cloud.blockscout.com/address/0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8) |
+| **Factory (Deployer)** | [`0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01`](https://basecamp.cloud.blockscout.com/address/0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01) |
+
+
+---
