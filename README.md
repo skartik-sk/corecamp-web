@@ -8,11 +8,6 @@
 
 **CoreCamp** is a complete Web3 ecosystem built on the Camp Network that transforms how creators monetize their intellectual property. By converting any digital or physical asset into a secure IP-NFT, CoreCamp provides a suite of powerful, decentralized tools to trade, auction, and value IP in a trustless, global marketplace.
 
-## 🔗 Important Links
-
-* **Live Website**: [**corecamp.skartik.xyz**](https://corecamp.skartik.xyz/)
-* **Project Presentation Deck**: [**corecamp-presentation.skartik.xyz**](https://corecamp-presentation.skartik.xyz/)
-
 ## 核心 The Core Problem
 
 Intellectual property is valuable but trapped. Creators struggle with insecure ownership, slow and complex sales, and unfair monetization. CoreCamp was built to solve this by making IP as liquid and easy to trade as any other digital asset.
@@ -47,5 +42,10 @@ All contracts are deployed and verified on the Basecamp block explorer.
 | **Lottery** | [`0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8`](https://basecamp.cloud.blockscout.com/address/0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8) |
 | **Factory (Deployer)** | [`0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01`](https://basecamp.cloud.blockscout.com/address/0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01) |
 
+
+## 🔗 Important Links
+
+* **Live Website**: [**corecamp.skartik.xyz**](https://corecamp.skartik.xyz/)
+* **Project Presentation Deck**: [**corecamp-presentation.skartik.xyz**](https://corecamp-presentation.skartik.xyz/)
 
 ---
