@@ -245,7 +245,7 @@ export default function Auctions() {
               <div className="text-2xl font-bold text-camp-dark">
                 {auctions.reduce((total, auction) => total + auction.currentBid, 0).toFixed(1)}
               </div>
-              <div className="text-cool-1">ETH Total Volume</div>
+              <div className="text-cool-1">CAMP Total Volume</div>
             </div>
             <div className="glass-effect rounded-2xl p-6 text-center border border-white/20">
               <div className="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -455,10 +455,10 @@ function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlace
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-cool-1">Current Bid</span>
-            <span className="text-sm text-cool-1">Min Bid: {auction.minimumBid} ETH</span>
+            <span className="text-sm text-cool-1">Min Bid: {auction.minimumBid} CAMP</span>
           </div>
           <div className="text-2xl font-bold text-camp-dark">
-            {auction.currentBid} ETH
+            {auction.currentBid} CAMP
           </div>
         </div>
 
@@ -478,7 +478,7 @@ function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlace
           <div className="space-y-3">
             <input
               type="number"
-              placeholder={`Min: ${auction.minimumBid} ETH`}
+              placeholder={`Min: ${auction.minimumBid} CAMP`}
               value={bidAmount}
               onChange={(e) => onBidAmountChange(e.target.value)}
               className="w-full px-4 py-3 border border-white/20 rounded-xl focus:ring-2 focus:ring-camp-orange focus:border-camp-orange bg-white/50 backdrop-blur-sm"

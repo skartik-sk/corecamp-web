@@ -524,7 +524,7 @@ export default function CreateIP() {
               >
                 <label className="block text-sm font-semibold text-camp-dark mb-4">
                   <DollarSign className="inline w-5 h-5 mr-2" />
-                  License Price (ETH)
+                  License Price (CAMP)
                 </label>
                 <input
                   type="number"

@@ -29,6 +29,9 @@ export interface CampfireIP {
   isInLottery?: boolean
   verified?: boolean
   featured?: boolean
+  animation_url?: string
+  audio?:string
+  
 }
 
 export interface AuctionData {
@@ -259,7 +262,7 @@ await recoverProvider()
         metadata.image = ipfsUrl;
       } else if (file.type.startsWith('audio')) {
         // audio file => use animation_url for playback
-        metadata.animation_url = ipfsUrl;
+        metadata.audio = ipfsUrl;
         // optionally set image to a cover art IPFS url or leave undefined
         delete metadata.image;
       } else {
@@ -680,7 +683,7 @@ if(!res) {
   }
 
   // === ESCROW INTEGRATION ===
-  const createEscrowDeal = async (tokenId: bigint, buyer: Address, price: string) => {
+  const createEscrowDeal = async (tokenId: bigint, buyer: Address, _price: string) => {
     await recoverProvider()
     if (!isConnected) {
       setError('Please connect your wallet')
@@ -691,7 +694,7 @@ if(!res) {
     setError(null)
 
     try {
-      const priceWei = parseEther(price)
+      const price = parseEther(_price)
 
       
       // First approve the NFT to the escrow contract
@@ -700,12 +703,12 @@ if(!res) {
         setError('Failed to approve NFT to escrow contract')
         throw new Error('Failed to approve NFT to escrow contract')
       }
-
+console.log(buyer , tokenId, price)
       await writeContract({
         address: CONTRACT_ADDRESSES.CORE_CAMP_ESCROW as Address,
         abi: CONTRACT_ABIS.ESCROW,
         functionName: 'createDeal',
-        args: [tokenId, buyer, priceWei],
+        args: [buyer , tokenId, price],
       })
 
       // setSuccess('Escrow deal created successfully! Waiting for buyer to fund the deal.')

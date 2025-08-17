@@ -19,7 +19,7 @@ export const CONTRACT_ADDRESSES = {
 
   // Your custom deployed contracts
   CORE_CAMP_MARKETPLACE: '0xf49cC8102fBEAF815e095ac6fCfa8d71AF2E8eB8',
-  CORE_CAMP_ESCROW: '0xd3Ff8cdA35be8aC2539b57579587C123DcA70673',
+  CORE_CAMP_ESCROW: '0x56360A8F270EDeacCC4872efc374CC4F75cFF9a1',
   CORE_CAMP_AUCTION: '0x02280daEC6829D2595163513cF3d04Cc0028AaF9',
   CORE_CAMP_LOTTERY: '0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8',
 
@@ -340,7 +340,7 @@ export function useCoreCampContracts(origin: any) {
 }
 
 // Price formatting utilities
-export const formatCurrency = (amount: string | number, currency = 'ETH') => {
+export const formatCurrency = (amount: string | number, currency = 'CAMP') => {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
   return `${num.toLocaleString(undefined, { 
     minimumFractionDigits: 3, 

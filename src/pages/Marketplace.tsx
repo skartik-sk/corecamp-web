@@ -101,7 +101,7 @@ export default function Marketplace() {
               description: extraData?.description || 'Intellectual property asset available for licensing',
               category: extraData?.category || 'AI/ML',
               price: listing.price ? formatEther(listing.price) : '0',
-              currency: 'ETH',
+              currency: 'CAMP',
               creator: listing.seller || '0x0000000000000000000000000000000000000000',
               image: extraData?.image || `https://picsum.photos/400/250?random=${listing.tokenId}`,
               likes: Math.floor(Math.random() * 500),

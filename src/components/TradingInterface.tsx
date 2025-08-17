@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   DollarSign, 
@@ -12,6 +12,9 @@ import {
 } from 'lucide-react'
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 import { EscrowNegotiation } from './EscrowNegotiation'
+import { createChatRoom, createNegotiationRequest, getOpenNegotiations } from '@/lib/firebase'
+import { useAuth } from '@campnetwork/origin/react'
+import { useNavigate } from 'react-router-dom'
 import type { Address } from 'viem'
 import type { CampfireIP } from '@/hooks/useCampfireIntegration'
 
@@ -28,6 +31,8 @@ export default function TradingInterface({
   isOwner,
   ipData
 }: TradingInterfaceProps) {
+  const auth = useAuth()
+  const navigate = useNavigate()
   const {
     listNFTOnMarketplace,
     buyNFTFromMarketplace,
@@ -48,6 +53,10 @@ export default function TradingInterface({
   const [activeTab, setActiveTab] = useState<'buy' | 'auction' | 'escrow' | 'lottery'>('buy')
   const [showModal, setShowModal] = useState(false)
   const [showP2PNegotiation, setShowP2PNegotiation] = useState(false)
+  const [creatingChat, setCreatingChat] = useState(false)
+  const [creatingNegotiation, setCreatingNegotiation] = useState(false)
+  const [negotiationAllowed, setNegotiationAllowed] = useState(false)
+
   const [formData, setFormData] = useState({
     price: currentPrice || '0.001',
     duration: '7', // days
@@ -60,6 +69,84 @@ export default function TradingInterface({
   const { data: marketplaceListing } = useMarketplaceListing(tokenId)
   const { data: auctionData } = useAuctionDetails(tokenId)
   const { data: escrowData } = useEscrowDeal(tokenId)
+
+  useEffect(() => {
+    let mounted = true
+    const checkNegotiation = async () => {
+      try {
+        const opens = await getOpenNegotiations()
+        if (!mounted) return
+        const found = opens.find(n => n.tokenId?.toString?.() === tokenId.toString())
+        setNegotiationAllowed(Boolean(found))
+      } catch (err) {
+        console.error('Error checking negotiation availability:', err)
+        if (mounted) setNegotiationAllowed(false)
+      }
+    }
+    checkNegotiation()
+    // Keep it up-to-date occasionally (optional)
+    const interval = setInterval(checkNegotiation, 30_000)
+    return () => { mounted = false; clearInterval(interval) }
+  }, [tokenId])
+
+  const handleStartNegotiation = async () => {
+    if (!auth.walletAddress || !ipData) {
+      console.error('Missing wallet address or IP data')
+      return
+    }
+
+    setCreatingChat(true)
+    try {
+      // Create or get existing chat room
+      const chatId = await createChatRoom(
+        tokenId.toString(),
+        ipData.owner,
+        auth.walletAddress as Address,
+        ipData.title,
+        ipData.image,
+        currentPrice,
+          {
+    mimeType: ipData.mimeType,
+    animation_url: ipData.animation_url,
+    audio_url: ipData.audio,
+  }
+      )
+
+      // Navigate to chat with the specific chat ID and token info
+      navigate(`/chat?room=${chatId}&token=${tokenId.toString()}`)
+    } catch (error) {
+      console.error('Error starting negotiation:', error)
+    } finally {
+      setCreatingChat(false)
+    }
+  }
+
+  const handleCreateNegotiationRequest = async () => {
+    if (!auth.walletAddress || !ipData) {
+      console.error('Missing wallet address or IP data')
+      return
+    }
+
+    setCreatingNegotiation(true)
+    try {
+      // Create negotiation request for this IP
+      await createNegotiationRequest(
+        tokenId.toString(),
+        auth.walletAddress as Address,
+        ipData.title,
+        ipData.image,
+        currentPrice,
+        ipData.category || 'Digital Asset'
+      )
+
+      // Navigate to chat screen to show the new negotiation
+      navigate('/chat')
+    } catch (error) {
+      console.error('Error creating negotiation request:', error)
+    } finally {
+      setCreatingNegotiation(false)
+    }
+  }
 
   const handleBuyAccess = async () => {
     try {
@@ -145,12 +232,22 @@ export default function TradingInterface({
         >
           {loading ? 'Processing...' : `Buy Access - ${currentPrice} CAMP`}
         </button>
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full py-3 border border-camp-orange text-camp-orange bg-white hover:bg-camp-orange hover:text-white transition-all rounded-xl font-medium"
-        >
-          Negotiate Deal
-        </button>
+
+        {/* Show "Start Negotiation" only when owner has allowed negotiation for this token */}
+        {negotiationAllowed ? (
+          <button
+            onClick={handleStartNegotiation}
+            disabled={creatingChat || !ipData}
+            className="w-full py-3 border border-camp-orange text-camp-orange bg-white hover:bg-camp-orange hover:text-white transition-all rounded-xl font-medium disabled:opacity-50"
+          >
+            {creatingChat ? 'Starting Chat...' : 'Start Negotiation'}
+          </button>
+        ) : (
+          // Optional: show nothing or a disabled hint
+          <div className="text-center text-sm text-gray-400">
+            Negotiation not available for this IP
+          </div>
+        )}
       </div>
     )
   }
@@ -237,7 +334,7 @@ export default function TradingInterface({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Agreed Price (ETH)
+                  Agreed Price (CAMP)
                 </label>
                 <input
                   type="number"
@@ -320,7 +417,7 @@ export default function TradingInterface({
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Starting Bid (ETH)
+                Starting Bid (CAMP)
               </label>
               <input
                 type="number"
@@ -367,16 +464,16 @@ export default function TradingInterface({
                 Start a secure escrow negotiation with real-time chat and step-by-step deal management.
               </p>
               <button
-                onClick={() => setShowP2PNegotiation(true)}
-                disabled={!ipData}
-                className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50"
+                onClick={handleCreateNegotiationRequest}
+                disabled={!ipData || creatingNegotiation || negotiationAllowed}
+                className="w-full py-2 gradient-bg text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50"
               >
-                Start P2P Negotiation
+                {creatingNegotiation ? 'Creating...' : 'Allow P2P Negotiation'}
               </button>
             </div>
 
             {/* Quick Escrow Option */}
-            <div className="border-t pt-4">
+            {/* <div className="border-t pt-4">
               <h3 className="font-semibold text-gray-800 mb-3">Quick Escrow</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -409,7 +506,7 @@ export default function TradingInterface({
               >
                 {loading ? 'Creating...' : 'Create Escrow Deal'}
               </button>
-            </div>
+            </div> */}
           </motion.div>
         )}
 
@@ -422,7 +519,7 @@ export default function TradingInterface({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ticket Price (ETH)
+                  Ticket Price (CAMP)
                 </label>
                 <input
                   type="number"

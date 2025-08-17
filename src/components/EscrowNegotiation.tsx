@@ -121,7 +121,7 @@ export const EscrowNegotiation: React.FC<EscrowNegotiationProps> = ({
     const success = await createEscrowDeal(ip.tokenId, buyerAddr as Address, negotiationPrice)
     if (success) {
       setStep('created')
-      addSystemMessage(`Escrow deal created for ${negotiationPrice} ETH. Waiting for buyer to fund the deal.`)
+      addSystemMessage(`Escrow deal created for ${negotiationPrice} CAMP. Waiting for buyer to fund the deal.`)
     }
   }
 
@@ -129,7 +129,7 @@ export const EscrowNegotiation: React.FC<EscrowNegotiationProps> = ({
     const success = await fundEscrowDeal(ip.tokenId, negotiationPrice)
     if (success) {
       setStep('funded')
-      addSystemMessage(`Deal funded with ${negotiationPrice} ETH. Both parties can now confirm the transfer.`)
+      addSystemMessage(`Deal funded with ${negotiationPrice} CAMP. Both parties can now confirm the transfer.`)
     }
   }
 
@@ -216,7 +216,7 @@ export const EscrowNegotiation: React.FC<EscrowNegotiationProps> = ({
               <p className="text-sm text-gray-600 mb-2">{ip.description}</p>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Original Price:</span>
-                <span className="font-bold text-orange-600">{ip.price} ETH</span>
+                <span className="font-bold text-orange-600">{ip.price} CAMP</span>
               </div>
             </div>
 
@@ -269,7 +269,7 @@ export const EscrowNegotiation: React.FC<EscrowNegotiationProps> = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Price:</span>
-                    <span className="font-medium">{escrowStatus.price} ETH</span>
+                    <span className="font-medium">{escrowStatus.price} CAMP</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Status:</span>
@@ -370,7 +370,7 @@ export const EscrowNegotiation: React.FC<EscrowNegotiationProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Negotiation Price (ETH)</label>
+                  <label className="block text-sm font-medium mb-2">Negotiation Price (CAMP)</label>
                   <input
                     type="text"
                     value={negotiationPrice}
@@ -416,7 +416,7 @@ export const EscrowNegotiation: React.FC<EscrowNegotiationProps> = ({
                     ) : (
                       <DollarSign className="h-4 w-4" />
                     )}
-                    <span>Fund Deal ({negotiationPrice} ETH)</span>
+                    <span>Fund Deal ({negotiationPrice} CAMP)</span>
                   </button>
                 )}
 

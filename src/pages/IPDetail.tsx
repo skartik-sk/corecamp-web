@@ -37,7 +37,7 @@ const mockIP: IPDetails = {
   owner: '0x1234567890abcdef',
   category: 'Art',
   tags: ['AI Art', 'Digital', 'NFT', 'Commercial'],
-  price: '0.5 ETH',
+  price: '0.5 CAMP',
   royalty: 5,
   duration: 0,
   views: 1250,
@@ -310,7 +310,7 @@ muted
         {data.id && ip.owner && data.value && (
           <TradingInterface
             tokenId={BigInt(data.id)}
-            currentPrice={ip.price?ip.price:data.value.replace(' ETH', '')}
+            currentPrice={ip.price?ip.price:data.value.replace(' CAMP', '')}
             isOwner={ip.creator === currAddress}
             ipData={{
               tokenId: BigInt(data.id),
@@ -320,8 +320,8 @@ muted
               tags: ip.tags || [],
               creator: userAddress as Address,
               owner: ip.creator as Address,
-              price: ip.price || data.value.replace(' ETH', ''),
-              currency: 'ETH',
+              price: ip.price || data.value.replace(' CAMP', ''),
+              currency: 'CAMP',
               royalty: ip.royalty || 0,
               duration: ip.duration || 0,
               views: ip.views || 0,

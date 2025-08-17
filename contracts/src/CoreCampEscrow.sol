@@ -100,6 +100,8 @@ contract CoreCampEscrow is ReentrancyGuard, Ownable {
         deal.status = DealStatus.Funded;
         
         emit DealFunded(tokenId, msg.sender, msg.value);
+        
+         _completeDeal(tokenId);
     }
     
     /**

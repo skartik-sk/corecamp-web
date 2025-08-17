@@ -1,4 +1,4 @@
-export const ESCROW_ABI =  [
+export const ESCROW_ABI = [
     {
       type: "constructor",
       inputs: [
@@ -361,3 +361,4 @@ export const ESCROW_ABI =  [
       anonymous: false,
     },
   ]
+  

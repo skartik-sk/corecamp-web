@@ -103,7 +103,7 @@ export default function Lottery() {
               description: nftData?.description || 'Blockchain lottery with transparent prize distribution and smart contract security',
               image: nftData?.image || 'https://example.com/default-lottery-image.jpg',
               prizePool: `${parseFloat(nftData.price || BigInt(0)) } CAMP`,
-              ticketPrice: `${parseFloat(formatEther(lottery.ticketPrice || BigInt(0))).toFixed(3)} ETH`,
+              ticketPrice: `${parseFloat(formatEther(lottery.ticketPrice || BigInt(0))).toFixed(3)} CAMP`,
               totalTickets: Number(lottery.maxTickets || 0),
               ticketsSold: Number(lottery.players.length || 0),
               endTime: new Date(Number(lottery.endTime || 0) * 1000),
@@ -647,7 +647,7 @@ function LotteryCard({
             
             <div className="text-center">
               <div className="text-sm text-cool-1 mb-2">
-                Total Cost: {(parseFloat(lottery.ticketPrice.split(' ')[0]) * ticketCount).toFixed(3)} ETH
+                Total Cost: {(parseFloat(lottery.ticketPrice.split(' ')[0]) * ticketCount).toFixed(3)} CAMP
               </div>
          
                 <button
