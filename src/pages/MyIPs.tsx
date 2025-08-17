@@ -23,56 +23,7 @@ import {
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration'
 
 // Mock data for demonstration
-const mockUserIPs = [
-  {
-    id: '1',
-    tokenId: '1',
-    name: 'AI Trading Algorithm v2.0',
-    description: 'Advanced machine learning model for cryptocurrency trading with 87% accuracy rate.',
-    category: 'AI/ML',
-    price: '2.5',
-    currency: 'ETH',
-    image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=250&fit=crop',
-    likes: 234,
-    views: 1542,
-    revenue: '12.8',
-    createdAt: '2024-01-15T10:30:00Z',
-    status: 'active',
-    featured: true
-  },
-  {
-    id: '2',
-    tokenId: '2',
-    name: 'Digital Art Collection',
-    description: 'Unique digital artworks created with AI assistance, ready for commercial licensing.',
-    category: 'Art',
-    price: '0.8',
-    currency: 'ETH',
-    image: 'https://images.unsplash.com/photo-1561998338-13ad7883b20f?w=400&h=250&fit=crop',
-    likes: 89,
-    views: 432,
-    revenue: '3.2',
-    createdAt: '2024-01-14T15:45:00Z',
-    status: 'active',
-    featured: false
-  },
-  {
-    id: '3',
-    tokenId: '3',
-    name: 'Smart Contract Library',
-    description: 'Battle-tested smart contracts for DeFi applications with comprehensive documentation.',
-    category: 'Code',
-    price: '1.2',
-    currency: 'ETH',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop',
-    likes: 156,
-    views: 892,
-    revenue: '7.4',
-    createdAt: '2024-01-13T09:20:00Z',
-    status: 'active',
-    featured: true
-  }
-]
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -104,7 +55,7 @@ export default function MyIPs() {
 
   const { getOriginData,getOriginUsage,isPending : isLoading } = useCampfireIntegration()
   const [ipAssets,setIpAssets] = useState<any[]>([])
-  const [filteredIPs, setFilteredIPs] = useState<any[]>(mockUserIPs)
+  const [filteredIPs, setFilteredIPs] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -121,7 +72,6 @@ const userAddress = auth.walletAddress;
     let data = await getOriginData(userAddress ? userAddress : '')
     if (data) {
       data = data.filter(ip => ip.metadata?.image && ip.metadata.image !== '')
-      console.log(data)
       setIpAssets(data)
       setStats(prev => ({
         ...prev,
@@ -129,8 +79,6 @@ const userAddress = auth.walletAddress;
       }))
     }
     const usage = await getOriginUsage()
-    
-      console.log(usage?.data.user)
       if(usage?.data.user){
         setStats(prev => ({
         ...prev,
@@ -151,12 +99,13 @@ const userAddress = auth.walletAddress;
     let filtered =ipAssets
 
 
-    if (searchTerm) {
-      filtered = filtered.filter(ip =>
-        ip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ip.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
+   if (searchTerm) {
+  filtered = filtered.filter(ip => {
+    const name = (ip.name ?? ip.metadata?.name ?? '').toString().toLowerCase()
+    const desc = (ip.description ?? ip.metadata?.description ?? '').toString().toLowerCase()
+    return name.includes(searchTerm.toLowerCase()) || desc.includes(searchTerm.toLowerCase())
+  })
+}
 
     if (filterCategory !== 'All') {
       filtered = filtered.filter(ip => ip.category === filterCategory)
@@ -400,7 +349,6 @@ const userAddress = auth.walletAddress;
 }
 
 function IPCard({ id, ip, viewMode ,value }: { id: string; ip: any; value:string; viewMode: 'grid' | 'list' }) {
-  console.log(id)
   if (viewMode === 'list') {
     return (
       <motion.div
@@ -482,36 +430,41 @@ function IPCard({ id, ip, viewMode ,value }: { id: string; ip: any; value:string
       className="glass-effect rounded-2xl overflow-hidden border border-white/20 hover-lift group"
     >
       <div className="relative">
-        <img
-          src={ip.image}
-          alt={ip.type}
-          className="w-full h-48 object-cover"
-        />
+        {/* Show video if ip.animation_url exists */}
+        {ip.animation_url ? (
+          <video
+        src={ip.animation_url}
+muted
+        autoPlay={true}
+        controls
+        className="w-full h-48 object-cover rounded-xl"
+        poster={ip.image}
+          />
+        ) : ip.audio ? (
+          // Show audio if ip.audio_url exists
+          <div className="w-full h-48 flex items-center justify-center bg-camp-light/30 rounded-xl">
+        <audio controls muted src={ip.audio} className="w-full" />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-camp-orange/80 text-white rounded text-xs">Audio</span>
+          </div>
+        ) : (
+          // Fallback to image
+          <img
+        src={ip.image}
+        alt={ip.type || ip.name}
+        className="w-full h-48 object-cover rounded-xl"
+          />
+        )}
+
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-camp-dark/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         
         {ip.featured && (
           <div className="absolute top-3 left-3 w-8 h-8 gradient-bg rounded-full flex items-center justify-center">
-            <Star className="w-4 h-4 text-white" />
+        <Star className="w-4 h-4 text-white" />
           </div>
         )}
         
-        <div className="absolute top-3 right-3">
-          <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-lg text-sm font-medium">
-            {ip.category}
-          </span>
-        </div>
-
-        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="flex items-center space-x-2">
-            <button className="p-2 bg-white/20 backdrop-blur-sm rounded-lg text-white hover:bg-white/30 transition-colors">
-              <Share2 className="w-4 h-4" />
-            </button>
-            <button className="p-2 bg-white/20 backdrop-blur-sm rounded-lg text-white hover:bg-white/30 transition-colors">
-              <Edit className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+        <div className="absolute top-3 right-3"></div>
 
       <div className="p-6">
         <h3 className="text-lg font-semibold text-camp-dark mb-2 group-hover:text-camp-orange transition-colors">

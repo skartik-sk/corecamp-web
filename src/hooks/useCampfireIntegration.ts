@@ -234,9 +234,13 @@ await recoverProvider()
           throw new Error('Failed to upload file to IPFS')
         }
         ipfsUrl = rest;
+
       } catch (error) {
         return; 
       }
+      const res = await fetch(ipfsUrl)
+      const blob = await res.blob()
+      const newfile = new File([blob],metadata.title , { type: metadata.mimeType })
       console.log("first", ipfsUrl)
       const licenseTerms = {
         price: BigInt(parseFloat(license.price || '1') * 1e18),
@@ -244,18 +248,36 @@ await recoverProvider()
         royaltyBps: parseInt(license.royalty || '0') * 100,
         paymentToken: (license.paymentToken || '0x0000000000000000000000000000000000000000') as Address,
       }
+         // IMPORTANT: Use animation_url for video/gif and image for static images
+      if (file.type.startsWith('video') || file.type === 'image/gif') {
+        // video or animated gif => use animation_url
+        metadata.animation_url = ipfsUrl;
+        // optionally set image to a thumbnail IPFS url or leave undefined
+        delete metadata.image;
+      } else if (file.type.startsWith('image')) {
+        // static image => set image
+        metadata.image = ipfsUrl;
+      } else if (file.type.startsWith('audio')) {
+        // audio file => use animation_url for playback
+        metadata.animation_url = ipfsUrl;
+        // optionally set image to a cover art IPFS url or leave undefined
+        delete metadata.image;
+      } else {
+        // other files => attach under files or additional metadata field
+        metadata.file = ipfsUrl;
+      }
+
 
       const parentTokenId = parentId === '' ? BigInt(0) : BigInt(parentId)
       console.log(metadata)
+      console.log(file)
       console.log(licenseTerms)
       const tokenId = await origin.mintFile(
-        file,
+        newfile,
       {
          ...metadata,
-         image: ipfsUrl,
          owner: address,
  price: license.price ,
-          mimeType: file.type,
           size: file.size,
         },
         licenseTerms,

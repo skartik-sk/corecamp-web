@@ -22,56 +22,7 @@ const categories = ['All', 'AI/ML', 'Art', 'Music', 'Design', 'Code', 'Writing',
 const sortOptions = ['Most Recent', 'Price: Low to High', 'Price: High to Low', 'Most Popular']
 
 // Mock data for demonstration
-const mockIPAssets = [
-  {
-    id: '1',
-    tokenId: '1',
-    name: 'AI Trading Algorithm v2.0',
-    description: 'Advanced machine learning model for cryptocurrency trading with 87% accuracy rate.',
-    category: 'AI/ML',
-    price: '2.5',
-    currency: 'ETH',
-    creator: '0x742d35Cc6634C0532925a3b8D7Cc6d6C1234567890',
-    image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop',
-    likes: 234,
-    views: 1542,
-    createdAt: '2024-01-15T10:30:00Z',
-    verified: true,
-    featured: true
-  },
-  {
-    id: '2',
-    tokenId: '2',
-    name: 'Digital Art Collection',
-    description: 'Unique digital artworks created with AI assistance, ready for commercial licensing.',
-    category: 'Art',
-    price: '0.8',
-    currency: 'ETH',
-    creator: '0x742d35Cc6634C0532925a3b8D7Cc6d6C9876543210',
-    image: 'https://images.unsplash.com/photo-1561998338-13ad7883b20f?w=500&h=300&fit=crop',
-    likes: 89,
-    views: 432,
-    createdAt: '2024-01-14T15:45:00Z',
-    verified: false,
-    featured: false
-  },
-  {
-    id: '3',
-    tokenId: '3',
-    name: 'Smart Contract Library',
-    description: 'Battle-tested smart contracts for DeFi applications with comprehensive documentation.',
-    category: 'Code',
-    price: '1.2',
-    currency: 'ETH',
-    creator: '0x742d35Cc6634C0532925a3b8D7Cc6d6C5555555555',
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&h=300&fit=crop',
-    likes: 156,
-    views: 892,
-    createdAt: '2024-01-13T09:20:00Z',
-    verified: true,
-    featured: true
-  }
-]
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -103,7 +54,7 @@ export default function Marketplace() {
   const [sortBy, setSortBy] = useState('Most Recent')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [ipAssets, setIpAssets] = useState<any[]>([])
-  const [filteredIPs, setFilteredIPs] = useState<any[]>(mockIPAssets)
+  const [filteredIPs, setFilteredIPs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -119,7 +70,7 @@ export default function Marketplace() {
       if (marketplaceError) {
         console.error('Marketplace error:', marketplaceError)
         setError('Using demo data - marketplace not available')
-        setIpAssets(mockIPAssets)
+        setIpAssets([])
       } else if (allListings && Array.isArray(allListings)) {
         console.log('All marketplace listings:', allListings)
 
@@ -158,7 +109,9 @@ export default function Marketplace() {
               createdAt: new Date().toISOString(),
               verified: Math.random() > 0.5,
               featured: Math.random() > 0.7,
-              isActive: listing.isActive
+              isActive: listing.isActive,
+              animation_url: extraData?.animation_url,
+              audio_url: extraData?.audio_url
             }
           })
         )
@@ -168,7 +121,7 @@ export default function Marketplace() {
         setIpAssets(activeListings)
       } else {
         // Use demo data when no contract data
-        setIpAssets(mockIPAssets)
+        setIpAssets([])
       }
     }
     fetchdata()
@@ -386,11 +339,29 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
       >
         <div className="flex items-center gap-6">
           <div className="relative">
-            <img
-              src={ip.image || `https://picsum.photos/200/150?random=${ip.tokenId || ip.id}`}
-              alt={ip.name}
-              className="w-32 h-24 rounded-2xl object-cover"
-            />
+           {ip.animation_url ? (
+          <video
+        src={ip.animation_url}
+muted
+        autoPlay={true}
+        controls
+        className="w-full h-48 object-cover rounded-xl"
+        poster={ip.image}
+          />
+        ) : ip.audio ? (
+          // Show audio if ip.audio_url exists
+          <div className="w-full h-48 flex items-center justify-center bg-camp-light/30 rounded-xl">
+        <audio controls muted src={ip.audio} className="w-full" />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-camp-orange/80 text-white rounded text-xs">Audio</span>
+          </div>
+        ) : (
+          // Fallback to image
+          <img
+        src={ip.image}
+        alt={ip.type || ip.name}
+        className="w-full h-48 object-cover rounded-xl"
+          />
+        )}
             {ip.featured && (
               <div className="absolute -top-2 -right-2 w-8 h-8 gradient-bg rounded-full flex items-center justify-center">
                 <Star className="w-4 h-4 text-white" />
@@ -459,11 +430,32 @@ function IPCard({ ip, viewMode }: { ip: any; viewMode: 'grid' | 'list' }) {
       whileHover={{ scale: 1.05 }}
     >
       <div className="relative">
-        <img
-          src={ip.image || `https://picsum.photos/400/250?random=${ip.tokenId || ip.id}`}
-          alt={ip.name}
-          className="w-full h-48 object-cover"
-        />
+       {ip.animation_url ? (
+          <video
+        src={ip.animation_url}
+muted
+        autoPlay={true}
+              // allow autoplay and show controls
+    playsInline         // avoid fullscreen on iOS
+    controls
+    loop 
+        className="w-full h-48 object-cover rounded-xl"
+        poster={ip.image}
+          />
+        ) : ip.audio_url ? (
+          // Show audio if ip.audio_url exists
+          <div className="w-full h-48 flex items-center justify-center bg-camp-light/30 rounded-xl">
+        <audio controls muted src={ip.audio_url} className="w-full" />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-camp-orange/80 text-white rounded text-xs">Audio</span>
+          </div>
+        ) : (
+          // Fallback to image
+          <img
+        src={ip.image}
+        alt={ip.type || ip.name}
+        className="w-full h-48 object-cover rounded-xl"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-camp-dark/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         
         {ip.featured && (

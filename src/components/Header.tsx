@@ -183,7 +183,7 @@ await recoverProvider()
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
                         > */}
-                        <CampModal />
+                        <CampModal injectButton={false} />
                         <button
                           onClick={openModal}
                           className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"

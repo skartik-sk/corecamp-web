@@ -37,6 +37,8 @@ interface LotteryRound {
   creatorAddress?: string
   winnerAnnounced?: boolean
   userAddress?: string
+  animation_url?: string
+  audio?: string
 }
 
 
@@ -113,7 +115,9 @@ export default function Lottery() {
               winner: lottery.winner && lottery.winner !== '0x0000000000000000000000000000000000000000' ? lottery.winner : undefined,
               winnerAnnounced: !lottery.active && lottery.winner && lottery.winner !== '0x0000000000000000000000000000000000000000',
               tokenId: lottery.tokenId?.toString(),
-              lotteryId: lottery.id?.toString()
+              lotteryId: lottery.id?.toString(),
+              animation_url: nftData?.animation_url,
+              audio: nftData?.audio
             };
           })
         );
@@ -478,11 +482,29 @@ function LotteryCard({
       transition={{ delay: index * 0.1 }}
       whileHover={{ scale: 1.02 }}
     >
-  <img
-          src={lottery.image}
-          alt={lottery.name}
-          className="w-full h-48 object-cover"
-        />
+{lottery.animation_url ? (
+          <video
+        src={lottery.animation_url}
+        muted
+        autoPlay={true}
+        controls
+        className="w-full h-48 object-cover rounded-xl"
+        poster={lottery.image}
+          />
+        ) : lottery.audio ? (
+          // Show audio if ip.audio_url exists
+          <div className="w-full h-48 flex items-center justify-center bg-camp-light/30 rounded-xl">
+        <audio controls muted src={lottery.audio} className="w-full" />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-camp-orange/80 text-white rounded text-xs">Audio</span>
+          </div>
+        ) : (
+          // Fallback to image
+          <img
+        src={lottery.image}
+
+        className="w-full h-48 object-cover rounded-xl"
+          />
+        )}
         {/* Header */}<div className="relative p-6">
       
         

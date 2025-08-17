@@ -53,7 +53,7 @@ export default function CreateIP() {
     parentId: '',
   })
   const [license, setLicense] = useState<LicenseTerms>({
-    price: '1',
+    price: '0.001',
     duration: '2345000',
     royalty: '0',
     paymentToken: '0x0000000000000000000000000000000000000000', // ETH
@@ -75,10 +75,17 @@ export default function CreateIP() {
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-      // Check file size (max 100MB)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB')
-        return
+      let maxSize = 10 * 1024 * 1024 // default 10MB
+      const type = selectedFile.type.split('/')[0]
+      if (type === 'audio') maxSize = 15 * 1024 * 1024
+      if (type === 'video') maxSize = 20 * 1024 * 1024
+      if (selectedFile.size > maxSize) {
+      setError(
+        `File size must be less than ${
+        type === 'audio' ? '15MB' : type === 'video' ? '20MB' : '10MB'
+        } for ${type}`
+      )
+      return
       }
       setFile(selectedFile)
       setError('')
@@ -89,9 +96,18 @@ export default function CreateIP() {
     e.preventDefault()
     const droppedFile = e.dataTransfer.files[0]
     if (droppedFile) {
-      if (droppedFile.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB')
-        return
+      console.log(droppedFile)
+      let maxSize = 10 * 1024 * 1024 // default 10MB
+      const type = droppedFile.type.split('/')[0]
+      if (type === 'audio') maxSize = 15 * 1024 * 1024
+      if (type === 'video') maxSize = 20 * 1024 * 1024
+      if (droppedFile.size > maxSize) {
+      setError(
+        `File size must be less than ${
+        type === 'audio' ? '15MB' : type === 'video' ? '20MB' : '10MB'
+        } for ${type}`
+      )
+      return
       }
       setFile(droppedFile)
       setError('')

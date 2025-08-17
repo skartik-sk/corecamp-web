@@ -17,6 +17,7 @@ import {
 import { useCampfireIntegration } from '@/hooks/useCampfireIntegration';
 import { formatAddress } from '@/lib/utils';
 
+
 interface Auction {
   id: string;
   title: string;
@@ -35,6 +36,8 @@ interface Auction {
   seller?: string;
   highestBidder?: string;
   isActive?: boolean;
+  animation_url?: string;
+  audio?: string;
 }
 
 
@@ -93,7 +96,9 @@ export default function Auctions() {
               tokenId: auction.tokenId?.toString(),
               seller: auction.seller,
               highestBidder: auction.highestBidder,
-              isActive: auction.isActive
+              isActive: auction.isActive,
+              animation_url: nftData?.animation_url,
+              audio: nftData?.audio
             }
           })
         );
@@ -413,11 +418,28 @@ function AuctionCard({ auction, countdown, bidAmount, onBidAmountChange, onPlace
       whileHover={{ scale: 1.02 }}
     >
       <div className="relative">
-        <img
-          src={auction.imageUrl}
-          alt={auction.title}
-          className="w-full h-48 object-cover"
-        />
+        {auction.animation_url ? (
+          <video
+        src={auction.animation_url}
+        muted
+        autoPlay={true}
+        controls
+        className="w-full h-48 object-cover rounded-xl"
+        poster={auction.imageUrl}
+          />
+        ) : auction.audio ? (
+          // Show audio if ip.audio_url exists
+          <div className="w-full h-48 flex items-center justify-center bg-camp-light/30 rounded-xl">
+        <audio controls muted src={auction.audio} className="w-full" />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-camp-orange/80 text-white rounded text-xs">Audio</span>
+          </div>
+        ) : (
+          // Fallback to image
+          <img
+        src={auction.imageUrl}
+        className="w-full h-48 object-cover rounded-xl"
+          />
+        )}
         
         {/* Overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-camp-dark/60 via-transparent to-transparent" />

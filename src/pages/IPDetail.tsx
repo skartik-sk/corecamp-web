@@ -25,6 +25,8 @@ interface IPDetails {
   mimeType: string
   size: number
   isLiked: boolean
+  audio?: string // Optional audio field
+  animation_url?: string // Optional animation URL field
 }
 
 const mockIP: IPDetails = {
@@ -144,11 +146,28 @@ const currAddress = auth.walletAddress as Address
         <div className="space-y-4">
         {ip.image && (
           <div className="relative bg-white rounded-2xl overflow-hidden card-shadow">
-          <img
-            src={ip.image || `https://picsum.photos/600/400?random=${ip.tokenId}`}
-            alt={ip.title || 'IP Image'}
-            className="w-full h-96 object-cover"
+         {ip.animation_url ? (
+          <video
+        src={ip.animation_url}
+muted
+        autoPlay={true}
+        controls
+        className="w-full h-48 object-cover rounded-xl"
+        poster={ip.image}
           />
+        ) : ip.audio ? (
+          // Show audio if ip.audio_url exists
+          <div className="w-full h-48 flex items-center justify-center bg-camp-light/30 rounded-xl">
+        <audio controls muted src={ip.audio} className="w-full" />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-camp-orange/80 text-white rounded text-xs">Audio</span>
+          </div>
+        ) : (
+          // Fallback to image
+          <img
+        src={ip.image}
+        className="w-full h-48 object-cover rounded-xl"
+          />
+        )}
           <div className="absolute top-4 right-4 flex space-x-2">
             <button
             onClick={handleLike}
