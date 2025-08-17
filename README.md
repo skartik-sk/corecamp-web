@@ -37,7 +37,7 @@ All contracts are deployed and verified on the Basecamp block explorer.
 | Contract          | Address                                                                                                            |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Marketplace** | [`0xf49cC8102fBEAF815e095ac6fCfa8d71AF2E8eB8`](https://basecamp.cloud.blockscout.com/address/0xf49cC8102fBEAF815e095ac6fCfa8d71AF2E8eB8) |
-| **P2P Escrow** | [`0xd3Ff8cdA35be8aC2539b57579587C123DcA70673`](https://basecamp.cloud.blockscout.com/address/0xd3Ff8cdA35be8aC2539b57579587C123DcA70673) |
+| **P2P Escrow** | [`0x56360A8F270EDeacCC4872efc374CC4F75cFF9a1`](https://basecamp.cloud.blockscout.com/address/0x56360A8F270EDeacCC4872efc374CC4F75cFF9a1) |
 | **Auction** | [`0x02280daEC6829D2595163513cF3d04Cc0028AaF9`](https://basecamp.cloud.blockscout.com/address/0x02280daEC6829D2595163513cF3d04Cc0028AaF9) |
 | **Lottery** | [`0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8`](https://basecamp.cloud.blockscout.com/address/0xbE0FB4e433CD1b0df9003444C2A82830DB7B50E8) |
 | **Factory (Deployer)** | [`0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01`](https://basecamp.cloud.blockscout.com/address/0x9c655a5475b2B2CD8EdD07ACCa6a98e3e23Dab01) |
