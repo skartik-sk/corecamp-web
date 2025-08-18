@@ -31,3 +31,8 @@ dist-ssr
 contracts/out
 contracts/cache
 contracts/lib
+
+
+.env
+.env.local
+.evn.example
