@@ -36,3 +36,4 @@ contracts/lib
 .env
 .env.local
 .evn.example
+contracts/.env
